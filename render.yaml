@@ -7,8 +7,9 @@ services:
     rootDir: backends/english
     plan: free
     buildCommand: pip install uv && uv sync --frozen --no-dev
+    # Runs the venv built above directly (no re-sync at start).
     # --proxy-headers so rate limiting sees the student's IP, not Netlify's/Render's proxy.
-    startCommand: uv run --no-dev uvicorn english_grader.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
+    startCommand: .venv/bin/uvicorn english_grader.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION

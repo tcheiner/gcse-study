@@ -16,5 +16,6 @@ def load_secrets(path: Path) -> None:
 def require(name: str) -> str:
     value = os.environ.get(name, "")
     if not value or value == "placeholder":
-        raise RuntimeError(f"{name} is not set. Add it to config/secrets.env (see config/secrets.example.env).")
+        raise RuntimeError(f"{name} is not set. Locally: add it to config/secrets.env (see config/secrets.example.env). "
+                           f"On a host (Render): add it as an environment variable in the service settings.")
     return value
