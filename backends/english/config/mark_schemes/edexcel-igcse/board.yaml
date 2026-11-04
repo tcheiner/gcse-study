@@ -1,0 +1,7 @@
+id: edexcel-igcse
+name: Pearson Edexcel International GCSE
+specification: English Language A (4EA1)
+paper: 2
+# DRAFT: paraphrased from the public specification, not copied from an official mark scheme.
+# Check the level descriptors and mark bands against Pearson's published mark schemes before relying on them.
+status: draft

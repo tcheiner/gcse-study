@@ -10,3 +10,17 @@ notes/
 plans/
 docs/project_notes/
 *.notes.md
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Logs
+logs/
+
+# Secrets: all credentials live in config/secrets.env
+config/secrets.env
+.env
+.env.*
+!*.example.env
