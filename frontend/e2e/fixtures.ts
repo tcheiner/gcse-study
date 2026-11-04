@@ -50,7 +50,11 @@ const active = () => {
 };
 
 type Handler = (route: Route) => Promise<void> | void;
-export interface MockOptions { keyActive?: boolean; addKey?: Handler; grade?: Handler; modelAnswer?: Handler; down?: boolean }
+export interface MockOptions {
+  keyActive?: boolean; addKey?: Handler; grade?: Handler; modelAnswer?: Handler; down?: boolean;
+  /** Make the grade job finish with this error code instead of a result. */
+  gradeJobError?: string;
+}
 
 const json = (route: Route, status: number, body: unknown) =>
   route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
@@ -59,6 +63,12 @@ const json = (route: Route, status: number, body: unknown) =>
 export async function mockBackend(page: Page, opts: MockOptions = {}) {
   let keyActive = opts.keyActive ?? false;
   const seen: { method: string; path: string; body: unknown }[] = [];
+  // Background jobs: start returns 202 + id; the first poll is pending, the next one finishes.
+  const jobs = new Map<string, { polls: number; done: unknown }>();
+  const startJob = (route: Route, id: string, done: unknown) => {
+    jobs.set(id, { polls: 0, done });
+    return json(route, 202, { job_id: id, status: "pending" });
+  };
   await page.route("**/api/english/**", async (route) => {
     const req = route.request();
     const path = new URL(req.url()).pathname.replace("/api/english", "");
@@ -71,8 +81,22 @@ export async function mockBackend(page: Page, opts: MockOptions = {}) {
       if (opts.addKey) return opts.addKey(route);
       keyActive = true; return json(route, 200, active());
     }
-    if (path === "/grade") return opts.grade ? opts.grade(route) : json(route, 200, GRADE);
-    if (path === "/model-answer") return opts.modelAnswer ? opts.modelAnswer(route) : json(route, 200, IDEAL);
+    if (path === "/grade") {
+      if (opts.grade) return opts.grade(route);
+      return startJob(route, "grade-1", opts.gradeJobError
+        ? { status: "error", result: null, code: opts.gradeJobError, message: "x" }
+        : { status: "done", result: GRADE, code: null, message: null });
+    }
+    if (path === "/model-answer") {
+      if (opts.modelAnswer) return opts.modelAnswer(route);
+      return startJob(route, "ideal-1", { status: "done", result: IDEAL, code: null, message: null });
+    }
+    if (path.startsWith("/jobs/")) {
+      const job = jobs.get(path.slice("/jobs/".length));
+      if (!job) return json(route, 404, { code: "job_missing", message: "gone" });
+      job.polls += 1;
+      return json(route, 200, job.polls === 1 ? { status: "pending", result: null, code: null, message: null } : job.done);
+    }
     return json(route, 404, { code: "generic", message: "not mocked" });
   });
   return seen;

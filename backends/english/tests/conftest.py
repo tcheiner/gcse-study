@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -73,14 +74,15 @@ ORIGIN = {"Origin": "http://localhost:3000"}
 
 
 @pytest.fixture
-def anon_client(settings_path: str, fake: FakeClient, monkeypatch) -> TestClient:
+def anon_client(settings_path: str, fake: FakeClient, monkeypatch):
     from english_grader.main import create_app
 
     monkeypatch.setenv("KEY_ENCRYPTION_KEY", TEST_KEK)
     app = create_app(settings_path)
     app.state.llm_client = fake
-    # https so the Secure cookie is sent back by the test client
-    return TestClient(app, base_url="https://testserver")
+    # https so the Secure cookie is sent back; `with` keeps one event loop alive for background jobs
+    with TestClient(app, base_url="https://testserver") as c:
+        yield c
 
 
 @pytest.fixture
@@ -94,3 +96,16 @@ def client(anon_client: TestClient) -> TestClient:
 def submission() -> dict:
     return {"board": "edexcel-igcse", "marks": 12, "question": "How does the writer create tension?",
             "answer": GOOD_ANSWER, "time_taken_seconds": 900}
+
+
+def run_job(client: TestClient, path: str, body: dict, polls: int = 50) -> dict:
+    """Start a job, poll until it finishes, return the final JobStatus JSON."""
+    r = client.post(path, json=body, headers=ORIGIN)
+    assert r.status_code == 202, r.text
+    job_id = r.json()["job_id"]
+    for _ in range(polls):
+        status = client.get(f"/jobs/{job_id}").json()
+        if status["status"] != "pending":
+            return status
+        time.sleep(0.01)
+    raise AssertionError("job never finished")

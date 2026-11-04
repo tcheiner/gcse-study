@@ -12,7 +12,7 @@ describe("t", () => {
       "question_required", "question_too_long", "answer_too_short", "answer_too_long", "scheme_not_found",
       "rate_limited", "key_required", "key_expired", "key_invalid", "key_format", "invalid_api_key",
       "permission_denied", "refusal", "truncated", "unparseable", "connection_error", "upstream_error",
-      "bad_origin", "network", "generic",
+      "bad_origin", "job_missing", "timeout", "network", "generic",
     ];
     expect(codes.filter((c) => !has(`errors.${c}`))).toEqual([]);
   });

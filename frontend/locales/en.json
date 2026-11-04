@@ -4,9 +4,21 @@
     "description": "Practise exam answers, get them marked against the mark scheme, and see them at full marks."
   },
   "brand": "GCSE Study",
-  "subjects": { "english": "English", "maths": "Maths", "science": "Science", "history": "History" },
-  "nav": { "skip": "Skip to content" },
-  "steps": { "label": "Steps", "write": "I. Write", "mark": "II. Mark", "improve": "III. Improve" },
+  "subjects": {
+    "english": "English",
+    "maths": "Maths",
+    "science": "Science",
+    "history": "History"
+  },
+  "nav": {
+    "skip": "Skip to content"
+  },
+  "steps": {
+    "label": "Steps",
+    "write": "I. Write",
+    "mark": "II. Mark",
+    "improve": "III. Improve"
+  },
   "key": {
     "title": "Your Claude API key",
     "statusNone": "No key added",
@@ -71,7 +83,11 @@
     "legendImprove": "Improve",
     "notes": "Examiner's notes",
     "skillsTitle": "Skill by skill",
-    "rating": { "strong": "Strong", "developing": "Developing", "limited": "Limited" },
+    "rating": {
+      "strong": "Strong",
+      "developing": "Developing",
+      "limited": "Limited"
+    },
     "wellTitle": "What went well",
     "tryTitle": "Next time, try",
     "idealTitle": "See your answer at full marks",
@@ -117,6 +133,8 @@
     "unparseable": "The marking couldn't be read. Please try again.",
     "connection_error": "Claude couldn't be reached. Please try again.",
     "upstream_error": "Claude had a problem. Please try again.",
-    "bad_origin": "This request was blocked for safety. Please reload the page."
+    "bad_origin": "This request was blocked for safety. Please reload the page.",
+    "job_missing": "That result is no longer available. Please try again.",
+    "timeout": "This is taking much longer than usual. Please try again in a moment."
   }
 }

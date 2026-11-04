@@ -18,7 +18,7 @@ test("happy path: add key, get marked, see full-marks version", async ({ page })
   await dialog.getByLabel("Paste your key").fill("sk-ant-test-key");
   await dialog.getByRole("button", { name: /check & seal/i }).click();
 
-  await expect(page.getByRole("heading", { name: /8 \/ 12/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /8 \/ 12/ })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText(/Key active · forgets in (19|20) min/)).toBeVisible();
   const grade = seen.find((r) => r.path === "/grade")!;
   expect(grade.body).toMatchObject({ board: "edexcel-igcse", marks: 9, question: "How does the writer create tension?" });
@@ -37,7 +37,7 @@ test("happy path: add key, get marked, see full-marks version", async ({ page })
   await expect(page.getByText("Perceptive and critical throughout.")).toBeVisible();
 
   await page.getByRole("button", { name: /show full-marks version/i }).click();
-  await expect(page.locator(".hl-change", { hasText: "Structurally, the focus narrows" })).toBeVisible();
+  await expect(page.locator(".hl-change", { hasText: "Structurally, the focus narrows" })).toBeVisible({ timeout: 15_000 });
   await page.getByRole("radio", { name: "Side by side" }).click();
   await expect(page.getByText("Your original · 8 / 12")).toBeVisible();
 
@@ -65,6 +65,15 @@ test("validation errors from the marker are shown on the page", async ({ page })
   await fillAnswer(page);
   await page.getByRole("button", { name: /submit for marking/i }).click();
   await expect(page.locator("p[role=alert]")).toHaveText(/too short to mark/);
+});
+
+test("a job that fails shows Claude's reason", async ({ page }) => {
+  await mockBackend(page, { keyActive: true, gradeJobError: "refusal" });
+  await page.goto("/english");
+  await fillAnswer(page);
+  await page.getByRole("button", { name: /submit for marking/i }).click();
+  await expect(page.getByRole("button", { name: /marking…/i })).toBeVisible();
+  await expect(page.locator("p[role=alert]")).toHaveText(/declined to mark/, { timeout: 15_000 });
 });
 
 test("an expired key reopens the key dialog with an explanation", async ({ page }) => {

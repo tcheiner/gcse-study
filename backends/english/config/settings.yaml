@@ -38,3 +38,9 @@ session:
   key_max_chars: 300
 
 secrets_file: ../../config/secrets.env
+
+# Background jobs for slow Claude calls (in memory only; removed on first read).
+jobs:
+  ttl_seconds: 600            # forget unread results after this long
+  max_pending_per_owner: 2    # per student session
+  max_jobs: 500               # per server process

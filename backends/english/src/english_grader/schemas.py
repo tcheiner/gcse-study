@@ -114,3 +114,15 @@ class SessionStatus(BaseModel):
     active: bool
     idle_expires_at: float | None = None
     absolute_expires_at: float | None = None
+
+
+class JobStarted(BaseModel):
+    job_id: str
+    status: Literal["pending"] = "pending"
+
+
+class JobStatus(BaseModel):
+    status: Literal["pending", "done", "error"]
+    result: dict | None = None
+    code: str | None = None
+    message: str | None = None

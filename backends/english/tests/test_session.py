@@ -4,7 +4,7 @@ import anthropic
 import httpx
 import pytest
 
-from conftest import ORIGIN, TEST_KEK, TEST_KEY
+from conftest import ORIGIN, TEST_KEK, TEST_KEY, run_job
 from english_grader.schemas import LLMGrade, ObjectiveRating
 from gcse_shared.key_session import KeySessionCodec, SessionExpired, SessionInvalid
 
@@ -104,7 +104,7 @@ def test_grade_slides_idle_window(client, fake, submission):
     before = client.cookies.get("gcse_key")
     fake.next_output = grade_output()
     time.sleep(0.01)
-    assert client.post("/grade", json=submission, headers=ORIGIN).status_code == 200
+    assert client.post("/grade", json=submission, headers=ORIGIN).status_code == 202
     assert client.cookies.get("gcse_key") != before
 
 
@@ -125,7 +125,7 @@ def test_tampered_cookie(client, submission):
 
 def test_key_never_written_to_logs(client, fake, submission, tmp_path):
     fake.next_output = grade_output()
-    client.post("/grade", json=submission, headers=ORIGIN)
+    run_job(client, "/grade", submission)
     text = "".join(p.read_text() for p in (tmp_path / "logs").glob("*.log"))
     assert "check_key" in text  # the key check itself was logged…
     assert TEST_KEY not in text  # …but never the key
@@ -141,5 +141,5 @@ def test_grader_receives_session_key(client, fake, submission, monkeypatch):
         return await real(**kw)
     monkeypatch.setattr(g, "structured_call", spy)
     fake.next_output = grade_output()
-    client.post("/grade", json=submission, headers=ORIGIN)
+    run_job(client, "/grade", submission)
     assert seen["key"] == TEST_KEY

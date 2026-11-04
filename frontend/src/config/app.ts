@@ -8,6 +8,8 @@ export const appConfig = {
   timerTargets: [0, 10, 15, 20, 30],
   defaultTimerTarget: 15,
   defaultTariff: 12,
+  /** Marking runs as a background job; the page checks this often (ms) and gives up after maxWaitMs. */
+  jobs: { pollMs: 2000, maxWaitMs: 5 * 60_000 },
   /** How often the key indicator re-checks its countdown (ms). */
   keyTickMs: 15_000,
   /** Mirrors backends/english/config/settings.yaml `session` (display only; the server enforces). */

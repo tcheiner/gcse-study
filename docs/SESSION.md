@@ -41,11 +41,16 @@ logs/                        DDMMYYYY_HH-MM-SS-MS.log, new per start, rotates at
 - `GET /health`, `GET /boards`
 - `POST /session/key` {api_key}: checks the key with Claude (models.retrieve, free), seals it into the cookie
 - `GET /session` -> {active, idle_expires_at, absolute_expires_at}; `DELETE /session/key` forgets it
-- `/grade` and `/model-answer` need the session cookie; each call slides the idle window
+- `/grade` and `/model-answer` need the session cookie; each call slides the idle window.
+  They return **202 {job_id}** at once; the browser polls `GET /jobs/{id}` -> {status: pending|done|error,
+  result, code, message}. Needed because Netlify's proxy times out long Claude calls (full-marks rewrite).
+  Jobs (`gcse_shared/jobs.py`): in memory only, bound to the session (sha256 of key+issued_at), removed on
+  first read, 10 min TTL, max 2 pending per session. Single process only (Render free); scale-out needs Redis.
 - `POST /grade` {board, marks, question, answer, time_taken_seconds?} -> mark, level, AO ratings, strengths,
   improvements, examiner summary, mark-scheme explainer, word count, time taken
 - `POST /model-answer` -> student's answer rewritten to full marks + list of changes
-- Errors: `{code, message}`; the frontend translates `code` via its locale file.
+- Errors: `{code, message}`; the frontend translates `code` via its locale file. Job failures arrive as
+  `status: "error"` with the same codes; frontend `runJob()` (lib/api.ts) turns them into ApiError.
 
 ## Patterns
 - Claude: `claude-opus-5-5`, effort high, `messages.parse` with Pydantic output, server-side refusal fallback.

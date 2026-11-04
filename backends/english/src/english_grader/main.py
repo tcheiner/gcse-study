@@ -1,6 +1,7 @@
 """FastAPI app for English Paper 2 grading."""
 from __future__ import annotations
 
+import hashlib
 import os
 import time
 from collections import defaultdict, deque
@@ -11,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from gcse_shared.config import load_settings
+from gcse_shared.jobs import JobLimit, JobStore
 from gcse_shared.key_session import KeySession, KeySessionCodec, SessionExpired, SessionInvalid
 from gcse_shared.llm import LLMError, LLMSettings, check_key
 from gcse_shared.logging import logged, setup_logging
@@ -19,7 +21,7 @@ from gcse_shared.secrets import load_secrets, require
 from . import grader
 from .mark_schemes import MarkSchemeRepo, SchemeNotFound
 from .schemas import (
-    BoardInfo, GradeResponse, KeyRequest, ModelAnswerResponse, SessionStatus, SubmissionRequest,
+    BoardInfo, JobStarted, JobStatus, KeyRequest, SessionStatus, SubmissionRequest,
 )
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
@@ -60,6 +62,7 @@ def create_app(settings_path: str = SETTINGS_PATH) -> FastAPI:
                             idle_seconds=int(sess["idle_minutes"] * 60),
                             absolute_seconds=int(sess["absolute_minutes"] * 60))
     allowed_origins = set(settings["api"]["cors_origins"])
+    jobs = JobStore(**settings["jobs"])
 
     llm = LLMSettings(**settings["llm"])
     limits = settings["limits"]
@@ -71,6 +74,7 @@ def create_app(settings_path: str = SETTINGS_PATH) -> FastAPI:
     app = FastAPI(title="GCSE English grader")
     app.state.llm_client = None  # tests inject a fake client here
     app.state.key_codec = codec
+    app.state.jobs = jobs
     app.add_middleware(
         CORSMiddleware, allow_origins=settings["api"]["cors_origins"], allow_credentials=True,
         allow_methods=["GET", "POST", "DELETE"], allow_headers=["Content-Type"],
@@ -114,6 +118,16 @@ def create_app(settings_path: str = SETTINGS_PATH) -> FastAPI:
             raise ApiError(401, "key_expired", "Your key was forgotten for safety. Please add it again.", True)
         except SessionInvalid:
             raise ApiError(401, "key_invalid", "Please add your Claude API key again.", True)
+
+    def owner_of(session: KeySession) -> str:
+        # Jobs belong to the session that started them. Hash only; held in memory, never logged.
+        return hashlib.sha256(f"{session.api_key}|{session.issued_at}".encode()).hexdigest()
+
+    def start_job(session: KeySession, work) -> JobStarted:
+        try:
+            return JobStarted(job_id=jobs.start(owner_of(session), work).id)
+        except JobLimit:
+            raise ApiError(429, "rate_limited", "Too many requests in progress. Please wait a moment.")
 
     def status_for(session: KeySession) -> SessionStatus:
         idle, absolute = codec.expiries(session)
@@ -168,21 +182,37 @@ def create_app(settings_path: str = SETTINGS_PATH) -> FastAPI:
         clear_session_cookie(response)
         return SessionStatus(active=False)
 
-    @app.post("/grade", response_model=GradeResponse, dependencies=[Depends(same_origin), Depends(rate_limit)])
+    # Slow Claude calls run as background jobs: start returns 202 at once, the browser polls /jobs/{id}.
+    @app.post("/grade", status_code=202, response_model=JobStarted,
+              dependencies=[Depends(same_origin), Depends(rate_limit)])
     async def grade(req: SubmissionRequest, response: Response, session: KeySession = Depends(current_session)):
         ms = validate(req)
-        result = await grader.grade(req, ms, prompts, llm, session.api_key, client=app.state.llm_client)
+        started = start_job(session, lambda: grader.grade(req, ms, prompts, llm, session.api_key,
+                                                          client=app.state.llm_client))
         set_session_cookie(response, codec.refresh(session))
-        return result
+        return started
 
-    @app.post("/model-answer", response_model=ModelAnswerResponse,
+    @app.post("/model-answer", status_code=202, response_model=JobStarted,
               dependencies=[Depends(same_origin), Depends(rate_limit)])
     async def model_answer(req: SubmissionRequest, response: Response,
                            session: KeySession = Depends(current_session)):
         ms = validate(req)
-        result = await grader.model_answer(req, ms, prompts, llm, session.api_key, client=app.state.llm_client)
+        started = start_job(session, lambda: grader.model_answer(req, ms, prompts, llm, session.api_key,
+                                                                 client=app.state.llm_client))
         set_session_cookie(response, codec.refresh(session))
-        return result
+        return started
+
+    @app.get("/jobs/{job_id}", response_model=JobStatus)
+    def job_status(job_id: str, response: Response, session: KeySession = Depends(current_session)):
+        job = jobs.take(job_id, owner_of(session))
+        if job is None:
+            raise ApiError(404, "job_missing", "That result is no longer available. Please try again.")
+        set_session_cookie(response, codec.refresh(session))
+        if job.status == "pending":
+            return JobStatus(status="pending")
+        if job.status == "error":
+            return JobStatus(status="error", code=job.code, message=job.message)
+        return JobStatus(status="done", result=job.result)
 
     return app
 
