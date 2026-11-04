@@ -11,7 +11,7 @@ from gcse_shared.key_session import KeySessionCodec, SessionExpired, SessionInva
 
 def grade_output():
     return LLMGrade(level=3, awarded=8, objectives=[ObjectiveRating(code="AO1", rating="strong", comment="x")],
-                    strengths=["a"], improvements=["b"], examiner_summary="c")
+                    strengths=["a"], improvements=["b"], annotations=[], examiner_summary="c")
 
 
 # ---- codec ----

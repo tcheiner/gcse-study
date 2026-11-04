@@ -45,7 +45,7 @@ def _scheme_values(ms: MarkScheme) -> dict[str, object]:
 
 
 @logged
-def reconcile(grade: LLMGrade, ms: MarkScheme) -> LLMGrade:
+def reconcile(grade: LLMGrade, ms: MarkScheme, answer: str = "") -> LLMGrade:
     """Keep the mark, level and objectives consistent with the mark scheme.
 
     The mark is treated as the primary judgement: it is clamped into 0..tariff and
@@ -59,9 +59,12 @@ def reconcile(grade: LLMGrade, ms: MarkScheme) -> LLMGrade:
             "model mark/level adjusted: %s/L%s -> %s/L%s", grade.awarded, grade.level, awarded, level,
             extra={"phase": "EXIT", "fn": "reconcile"},
         )
+    # Annotations must quote the response exactly, or the frontend cannot highlight them.
+    annotations = [a for a in grade.annotations if a.quote.strip() and a.quote in answer][:8]
     known = [ao["code"] for ao in ms.scheme["assessment_objectives"]]
     objectives = sorted((o for o in grade.objectives if o.code in known), key=lambda o: known.index(o.code))
-    return grade.model_copy(update={"awarded": awarded, "level": level, "objectives": objectives})
+    return grade.model_copy(update={"awarded": awarded, "level": level, "objectives": objectives,
+                                    "annotations": annotations})
 
 
 def explainer(ms: MarkScheme) -> MarkSchemeExplainer:
@@ -85,13 +88,14 @@ async def grade(req: SubmissionRequest, ms: MarkScheme, prompts: Prompts, llm: L
         user=prompts.render("grade_user", question=req.question, answer=req.answer),
         output_type=LLMGrade, api_key=api_key, client=client,
     )
-    g = reconcile(raw, ms)
+    g = reconcile(raw, ms, req.answer)
     band = ms.level(g.level) or {"student_summary": ""}
     return GradeResponse(
         board=req.board, word_count=word_count(req.answer), time_taken_seconds=req.time_taken_seconds,
         awarded=g.awarded, max=ms.tariff, level=g.level,
         level_summary=band["student_summary"], objectives=g.objectives, strengths=g.strengths,
-        improvements=g.improvements, examiner_summary=g.examiner_summary, mark_scheme=explainer(ms),
+        improvements=g.improvements, annotations=g.annotations, examiner_summary=g.examiner_summary,
+        mark_scheme=explainer(ms),
     )
 
 
@@ -104,4 +108,7 @@ async def model_answer(req: SubmissionRequest, ms: MarkScheme, prompts: Prompts,
         user=prompts.render("grade_user", question=req.question, answer=req.answer),
         output_type=LLMModelAnswer, api_key=api_key, client=client,
     )
-    return ModelAnswerResponse(board=req.board, max=ms.tariff, rewritten=raw.rewritten, changes=raw.changes)
+    # Keep excerpts only when they appear verbatim in the rewrite (used for highlighting).
+    changes = [c if c.excerpt and c.excerpt in raw.rewritten else c.model_copy(update={"excerpt": ""})
+               for c in raw.changes]
+    return ModelAnswerResponse(board=req.board, max=ms.tariff, rewritten=raw.rewritten, changes=changes)

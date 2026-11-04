@@ -9,7 +9,9 @@ for their own answer rewritten to full marks. One backend per subject; one Next.
 
 ## Status
 - English Paper 2, Pearson Edexcel IGCSE, 6/9/12-mark questions: backend built (`backends/english`).
-- Frontend: designed (vintage typewriter theme), not yet built.
+- Frontend: built (`frontend/`, Next.js 16, App Router, Cache Components). Vintage typewriter theme,
+  walnut ink for English. Single-page flow: write -> results -> full-marks version. Nothing persisted.
+- Deploy: Netlify (frontend, site `y11-gcse`, netlify.toml base=frontend) + Render (backend, render.yaml).
 - Mark schemes are DRAFT paraphrases; verify against official Pearson mark schemes.
 
 ## Layout
@@ -22,6 +24,15 @@ backends/
     src/english_grader/prompts/*.md    prompt templates ($placeholders, string.Template)
     src/english_grader/                main.py (routes), grader.py, mark_schemes.py, schemas.py
     tests/                             pytest; Claude client faked via app.state.llm_client
+frontend/
+  src/app/english/                     layout (theme + KeyProvider + Header) and page (EnglishStudio)
+  src/components/                      EnglishStudio (flow), WriteView, ResultsView, ModelAnswerView,
+                                       KeyContext/KeyControl (key dialog + countdown), Stopwatch, Header
+  src/config/app.ts, subjects.ts       app settings; per-subject ink colours (CSS variables)
+  src/lib/                             api.ts (typed client), i18n.ts, text.ts, clock.ts (useNow store)
+  locales/en.json                      ALL user-facing text
+  src/__tests__/ (Vitest), e2e/ (Playwright, backend mocked via page.route)
+netlify.toml, render.yaml           deploy config (no secrets)
 config/secrets.example.env   template for config/secrets.env (gitignored): ALL credentials live there
 logs/                        DDMMYYYY_HH-MM-SS-MS.log, new per start, rotates at midnight (gitignored)
 ```
@@ -51,8 +62,16 @@ logs/                        DDMMYYYY_HH-MM-SS-MS.log, new per start, rotates at
   Students should use a dedicated key with a low spend limit (the real backstop on shared machines).
 - Supabase project exists (ref in config/secrets.env) but is unused for now.
 
+- Frontend calls same-origin `/api/english/*`; next.config.ts rewrites to ENGLISH_API_URL (Render URL in
+  production, http://127.0.0.1:8000 locally). Keeps the HttpOnly key cookie first-party.
+- Grade output includes `annotations` (verbatim quotes + strength/improve + note) for margin marking;
+  model answer `changes[].excerpt` for highlighting. Non-verbatim quotes are dropped server-side.
+- Never read the clock during render (Cache Components prerender error): use `useNow()` from lib/clock.
+
 ## Run
 ```
 cd backends/english && uv sync && uv run pytest
 uv run uvicorn english_grader.main:app --reload
+cd frontend && npm install && npm run dev          # http://localhost:3000/english
+npm run test && npm run test:e2e && npm run build
 ```

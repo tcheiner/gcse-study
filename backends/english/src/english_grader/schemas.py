@@ -20,18 +20,26 @@ class ObjectiveRating(BaseModel):
     comment: str
 
 
+class Annotation(BaseModel):
+    quote: str
+    kind: Literal["strength", "improve"]
+    note: str
+
+
 class LLMGrade(BaseModel):
     level: int
     awarded: int
     objectives: list[ObjectiveRating]
     strengths: list[str]
     improvements: list[str]
+    annotations: list[Annotation]
     examiner_summary: str
 
 
 class Change(BaseModel):
     what: str
     why: str
+    excerpt: str = ""
 
 
 class LLMModelAnswer(BaseModel):
@@ -72,6 +80,7 @@ class GradeResponse(BaseModel):
     objectives: list[ObjectiveRating]
     strengths: list[str]
     improvements: list[str]
+    annotations: list[Annotation]
     examiner_summary: str
     mark_scheme: MarkSchemeExplainer
 

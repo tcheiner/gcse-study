@@ -24,3 +24,8 @@ config/secrets.env
 .env
 .env.*
 !*.example.env
+
+# Frontend test artefacts
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/

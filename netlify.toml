@@ -1,0 +1,10 @@
+# Netlify builds the Next.js frontend from the frontend/ folder.
+# Set ENGLISH_API_URL in Netlify (Site configuration > Environment variables) to the Render backend URL;
+# next.config.ts proxies /api/english/* there, so the key cookie stays on this site.
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"

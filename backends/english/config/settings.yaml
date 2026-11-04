@@ -11,8 +11,10 @@ logging:
   dir: ../../logs         # relative to this backend folder
 
 api:
-  cors_origins:
+  cors_origins:            # also the allowed Origin list for the CSRF check
     - http://localhost:3000
+    - http://localhost:3100
+    - https://y11-gcse.netlify.app
   rate_limit:
     requests: 10          # per client IP…
     window_seconds: 60    # …per this many seconds
