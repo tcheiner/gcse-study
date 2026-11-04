@@ -24,3 +24,15 @@ limits:
 
 mark_schemes_dir: config/mark_schemes
 prompts_dir: src/english_grader/prompts
+
+# Student Claude keys: never stored. Sealed (AES-GCM) into a short-lived HttpOnly cookie.
+session:
+  cookie_name: gcse_key
+  idle_minutes: 20        # forget after this long without use
+  absolute_minutes: 120   # forget this long after entry, even if in use
+  secure_cookie: true     # HTTPS only (browsers allow Secure cookies on http://localhost)
+  same_site: strict
+  key_prefix: sk-ant-
+  key_max_chars: 300
+
+secrets_file: ../../config/secrets.env

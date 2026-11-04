@@ -83,3 +83,24 @@ async def structured_call(
     if response.parsed_output is None:
         raise LLMError("unparseable", "Claude's response could not be read.", True)
     return response.parsed_output
+
+
+@logged
+async def check_key(*, api_key: str, model: str, timeout: float,
+                    client: anthropic.AsyncAnthropic | None = None) -> None:
+    """Confirm the key works and can use the configured model. Retrieving a model costs no tokens."""
+    client = client or make_client(api_key, timeout)
+    try:
+        await client.models.retrieve(model)
+    except anthropic.AuthenticationError as e:
+        raise LLMError("invalid_api_key", "The Claude API key was rejected.") from e
+    except anthropic.PermissionDeniedError as e:
+        raise LLMError("permission_denied", "This key cannot use the required Claude model.") from e
+    except anthropic.NotFoundError as e:
+        raise LLMError("permission_denied", "This key cannot use the required Claude model.") from e
+    except anthropic.RateLimitError as e:
+        raise LLMError("rate_limited", "Claude is rate limiting requests. Try again shortly.", True) from e
+    except anthropic.APIStatusError as e:
+        raise LLMError("upstream_error", f"Claude returned {e.status_code}.", e.status_code >= 500) from e
+    except anthropic.APIConnectionError as e:
+        raise LLMError("connection_error", "Could not reach Claude.", True) from e

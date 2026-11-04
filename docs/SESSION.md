@@ -28,6 +28,9 @@ logs/                        DDMMYYYY_HH-MM-SS-MS.log, new per start, rotates at
 
 ## API (english)
 - `GET /health`, `GET /boards`
+- `POST /session/key` {api_key}: checks the key with Claude (models.retrieve, free), seals it into the cookie
+- `GET /session` -> {active, idle_expires_at, absolute_expires_at}; `DELETE /session/key` forgets it
+- `/grade` and `/model-answer` need the session cookie; each call slides the idle window
 - `POST /grade` {board, marks, question, answer, time_taken_seconds?} -> mark, level, AO ratings, strengths,
   improvements, examiner summary, mark-scheme explainer, word count, time taken
 - `POST /model-answer` -> student's answer rewritten to full marks + list of changes
@@ -37,11 +40,15 @@ logs/                        DDMMYYYY_HH-MM-SS-MS.log, new per start, rotates at
 - Claude: `claude-opus-5-5`, effort high, `messages.parse` with Pydantic output, server-side refusal fallback.
 - `reconcile()` treats the mark as primary: clamps to 0..tariff and derives the level from the band.
 - Student text is wrapped in tags and treated as data (prompt-injection guard).
+- Key sessions (`gcse_shared/key_session.py`): AES-256-GCM with KEY_ENCRYPTION_KEY; cookie is HttpOnly,
+  Secure, SameSite=strict, browser-session only; 20 min idle / 120 min absolute (settings.yaml); Origin checked.
+  Codec is deliberately not @logged (its return values hold the plaintext key).
 - `@logged` decorator: ENTER/EXIT/ERROR with duration; redacts api_key/password/token; truncates long strings.
 
 ## Decisions
-- No accounts, no stored personal data (GDPR, children's code). The student's Claude key will live only in an
+- No accounts, no stored personal data (GDPR, children's code). The student's Claude key lives only in an
   encrypted, HttpOnly, short-lived session cookie (idle + absolute timeout); never stored or logged server-side.
+  Students should use a dedicated key with a low spend limit (the real backstop on shared machines).
 - Supabase project exists (ref in config/secrets.env) but is unused for now.
 
 ## Run

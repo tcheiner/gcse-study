@@ -7,6 +7,8 @@ dependencies = [
   "anthropic>=0.70",
   "pydantic>=2.8",
   "pyyaml>=6.0",
+  "cryptography>=43",
+  "python-dotenv>=1.0",
 ]
 
 [build-system]

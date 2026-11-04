@@ -95,3 +95,13 @@ class BoardInfo(BaseModel):
 class ErrorResponse(BaseModel):
     code: str
     message: str
+
+
+class KeyRequest(BaseModel):
+    api_key: str
+
+
+class SessionStatus(BaseModel):
+    active: bool
+    idle_expires_at: float | None = None
+    absolute_expires_at: float | None = None
