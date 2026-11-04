@@ -1,0 +1,12 @@
+# Claude
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+graphify-out/
+
+# Notes
+notes/
+plans/
+docs/project_notes/
+*.notes.md
