@@ -29,3 +29,6 @@ config/secrets.env
 frontend/test-results/
 frontend/playwright-report/
 frontend/blob-report/
+
+# Netlify local build output
+.netlify/

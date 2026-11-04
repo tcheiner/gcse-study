@@ -8,3 +8,8 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+# Run Netlify's Next.js runtime (server rendering, rewrites, headers). Without it the
+# raw .next folder is published as static files and every route returns 404.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
