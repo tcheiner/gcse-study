@@ -5,13 +5,14 @@ import type { GradeResult, ModelAnswer } from "@/lib/api";
 import { t } from "@/lib/i18n";
 import { segmentByQuotes } from "@/lib/text";
 import { PrintButton } from "./PrintButton";
+import { IdealPrint } from "./PrintSheets";
 import { splitParagraphs } from "./ResultsView";
 
 type View = "ideal" | "both" | "mine";
 
-interface Props { ideal: ModelAnswer; original: string; grade: GradeResult; onBack: () => void }
+interface Props { ideal: ModelAnswer; original: string; question: string; grade: GradeResult; onBack: () => void }
 
-export function ModelAnswerView({ ideal, original, grade, onBack }: Props) {
+export function ModelAnswerView({ ideal, original, question, grade, onBack }: Props) {
   const [view, setView] = useState<View>("ideal");
   const [copied, setCopied] = useState(false);
   const segs = splitParagraphs(segmentByQuotes(ideal.rewritten, ideal.changes.map((c) => ({ quote: c.excerpt, kind: "change" }))));
@@ -24,7 +25,9 @@ export function ModelAnswerView({ ideal, original, grade, onBack }: Props) {
 
   return (
     <main id="main" className="shell page" style={{ gap: 32 }}>
-      <button type="button" className="linkish no-print" onClick={onBack} style={{ alignSelf: "flex-start" }}>
+      <IdealPrint ideal={ideal} original={original} grade={grade} question={question} view={view} />
+      <div className="screen-only" style={{ display: "contents" }}>
+      <button type="button" className="linkish" onClick={onBack} style={{ alignSelf: "flex-start" }}>
         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5" /><path d="M11 6l-6 6 6 6" /></svg>
         {t("ideal.back")}
       </button>
@@ -36,12 +39,12 @@ export function ModelAnswerView({ ideal, original, grade, onBack }: Props) {
           <p style={{ margin: 0, maxWidth: 640, color: "var(--text-2)" }}>{t("ideal.intro")}</p>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
-          <div role="radiogroup" aria-label={t("ideal.views")} className="segmented no-print">
+          <div role="radiogroup" aria-label={t("ideal.views")} className="segmented">
             {views.map(([id, label]) => (
               <button key={id} type="button" role="radio" aria-checked={view === id} onClick={() => setView(id)}>{label}</button>
             ))}
           </div>
-          <button type="button" className="btn btn-small no-print" onClick={copy} aria-live="polite">{copied ? t("ideal.copied") : t("ideal.copy")}</button>
+          <button type="button" className="btn btn-small" onClick={copy} aria-live="polite">{copied ? t("ideal.copied") : t("ideal.copy")}</button>
           <PrintButton labelKey="print.ideal" className="btn btn-small" />
         </div>
       </div>
@@ -79,6 +82,7 @@ export function ModelAnswerView({ ideal, original, grade, onBack }: Props) {
             ))}
           </ol>
         </aside>
+      </div>
       </div>
     </main>
   );

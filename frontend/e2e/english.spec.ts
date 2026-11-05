@@ -27,26 +27,27 @@ test("happy path: add key, get marked, see full-marks version", async ({ page })
   await expect(dialog).toBeHidden();
   expect(seen.filter((r) => JSON.stringify(r.body).includes("sk-ant-test-key")).map((r) => r.path)).toEqual(["/session/key"]);
 
-  // Genre, both grids, the level drop and the two steps.
-  await expect(page.getByText("Descriptive", { exact: true })).toBeVisible();
-  await expect(page.getByText("Content & Structure: 9 / 16 · Level 4")).toBeVisible();
-  await expect(page.getByText("Style & Accuracy: 13 / 24 · Level 4")).toBeVisible();
+  // Genre, both grids, the level drop and the two steps (on screen, not the hidden print sheet).
+  const shown = page.locator("main > .screen-only");
+  await expect(shown.getByText("Descriptive", { exact: true })).toBeVisible();
+  await expect(shown.getByText("Content & Structure: 9 / 16 · Level 4")).toBeVisible();
+  await expect(shown.getByText("Style & Accuracy: 13 / 24 · Level 4")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Level drop: a critical error" })).toBeVisible();
-  await expect(page.getByText("Use a semicolon to balance past and present.")).toBeVisible();
+  await expect(shown.getByText("Use a semicolon to balance past and present.")).toBeVisible();
 
   // Margin annotations highlight the student's own words.
-  await expect(page.locator(".hl-strength", { hasText: "folded like a sleeper's" })).toBeVisible();
-  await expect(page.locator(".hl-improve", { hasText: "grandad winding it" })).toBeVisible();
-  await expect(page.getByText("This drifts into narrative: keep describing.")).toBeVisible();
+  await expect(shown.locator(".hl-strength", { hasText: "folded like a sleeper's" })).toBeVisible();
+  await expect(shown.locator(".hl-improve", { hasText: "grandad winding it" })).toBeVisible();
+  await expect(shown.getByText("This drifts into narrative: keep describing.")).toBeVisible();
 
   // Each grid has its own level track: select another level to read it.
   await page.getByRole("group", { name: "Style & Accuracy levels" }).getByRole("button", { name: "Level 6 · 21–24 marks" }).click();
-  await expect(page.getByText("Precise words, almost always accurate.")).toBeVisible();
+  await expect(shown.getByText("Precise words, almost always accurate.")).toBeVisible();
 
   await page.getByRole("button", { name: /show full-marks version/i }).click();
   await expect(page.locator(".hl-change", { hasText: "the pendulum hangs mid-swing" })).toBeVisible({ timeout: 15_000 });
   await page.getByRole("radio", { name: "Side by side" }).click();
-  await expect(page.getByText("Your original · 22 / 40")).toBeVisible();
+  await expect(page.locator("main > .screen-only").getByText("Your original · 22 / 40")).toBeVisible();
 
   await page.getByRole("button", { name: /back to my feedback/i }).click();
   await page.getByRole("button", { name: /back to my answer/i }).click();
@@ -121,7 +122,7 @@ test("stopwatch runs and resets", async ({ page }) => {
   await expect(page.getByRole("img", { name: "Stopwatch: 00:00 elapsed" })).toBeVisible();
 });
 
-test("print buttons open the print dialog and the print layout hides the site chrome", async ({ page }) => {
+test("print buttons open the print dialog and each page prints a one-page A4 sheet", async ({ page }) => {
   await mockBackend(page, { keyActive: true });
   await page.goto("/english");
   await page.evaluate(() => { (window as unknown as { printed: number }).printed = 0; window.print = () => { (window as unknown as { printed: number }).printed++; }; });
@@ -129,20 +130,38 @@ test("print buttons open the print dialog and the print layout hides the site ch
 
   await page.getByRole("button", { name: "Print to edit" }).click();
   await page.emulateMedia({ media: "print" });
-  await expect(page.locator(".print-draft")).toBeVisible();
-  await expect(page.locator(".print-draft h1")).toHaveText(QUESTION);
+  await expect(page.locator(".ps-draft")).toBeVisible();
+  await expect(page.locator(".ps-draft h1")).toHaveText(QUESTION);
   await expect(page.locator("header.header")).toBeHidden();
-  await expect(page.getByRole("button", { name: /submit for marking/i })).toBeHidden();
+  await expect(page.locator("#answer")).toBeHidden();
   await page.emulateMedia({ media: "screen" });
+  await expect(page.locator(".ps-draft")).toBeHidden();
 
   await page.getByRole("button", { name: /submit for marking/i }).click();
   await page.getByRole("button", { name: "Print marked essay" }).click();
   await page.emulateMedia({ media: "print" });
-  await expect(page.getByText("Content & Structure: 9 / 16 · Level 4")).toBeVisible();
+  const sheet = page.locator(".ps-marked");
+  await expect(sheet).toBeVisible();
+  await expect(sheet.locator(".ps-stamp-score")).toHaveText("22/40");
+  await expect(sheet.locator(".ps-hl-strength", { hasText: "folded like a sleeper's" })).toBeVisible();
+  await expect(sheet.getByText("This drifts into narrative: keep describing.")).toBeVisible();
   await expect(page.getByRole("button", { name: /show full-marks version/i })).toBeHidden();
   await page.emulateMedia({ media: "screen" });
 
   await page.getByRole("button", { name: /show full-marks version/i }).click();
   await page.getByRole("button", { name: "Print", exact: true }).click();
   expect(await page.evaluate(() => (window as unknown as { printed: number }).printed)).toBe(3);
+});
+
+test("a long essay is scaled to fit one printed page", async ({ page }) => {
+  await mockBackend(page, { keyActive: true });
+  await page.goto("/english");
+  const long = Array.from({ length: 14 }, () => "The rain kept falling on the empty platform while the old clock refused to move. ".repeat(5)).join("\n\n");
+  await page.getByRole("textbox", { name: "Your answer", exact: true }).fill(long);
+  await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
+  const zoom = Number(await page.locator(".ps-draft").evaluate((el) => (el as HTMLElement).style.zoom));
+  expect(zoom).toBeGreaterThanOrEqual(0.5);
+  expect(zoom).toBeLessThan(1);
+  await page.evaluate(() => window.dispatchEvent(new Event("afterprint")));
+  await expect(page.locator(".ps-draft")).toHaveAttribute("style", /^$|^\s*$/);
 });

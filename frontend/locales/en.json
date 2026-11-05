@@ -154,7 +154,12 @@
     "draft": "Print to edit",
     "marked": "Print marked essay",
     "ideal": "Print",
-    "draftMeta": "Draft for editing · {words} words · {marks}-mark composition",
-    "notesTitle": "Examiner's notes"
+    "draftMeta": "{words} words · {marks}-mark composition · edit in the margin, then retype",
+    "notesTitle": "Examiner's notes",
+    "draftKicker": "Draft for editing",
+    "markedKicker": "Marked composition",
+    "markedMeta": "{genre} · {words} words · time {time}",
+    "idealKicker": "Full-marks version",
+    "idealMeta": "Your original {awarded} / {max} · rewritten to full marks"
   }
 }

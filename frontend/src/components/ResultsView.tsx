@@ -5,9 +5,11 @@ import type { GradeResult, GridResult } from "@/lib/api";
 import { t } from "@/lib/i18n";
 import { formatClock, segmentByQuotes, toRoman } from "@/lib/text";
 import { PrintButton } from "./PrintButton";
+import { MarkedPrint } from "./PrintSheets";
 
 interface Props {
   result: GradeResult;
+  question: string;
   answer: string;
   onBack: () => void;
   onIdeal: () => void;
@@ -39,7 +41,7 @@ function GridCard({ grid }: { grid: GridResult }) {
       </div>
       <p className="muted" style={{ margin: 0, fontSize: 15 }}>{grid.student_summary}</p>
       <p style={{ margin: 0 }}><strong>{grid.level}.</strong> {grid.justification}</p>
-      <div className="track compact no-print" role="group" aria-label={t("results.levelsOf", { grid: grid.label })}>
+      <div className="track compact" role="group" aria-label={t("results.levelsOf", { grid: grid.label })}>
         {levels.map((l) => (
           <button key={l.name} type="button" aria-pressed={sel.name === l.name} aria-label={t("results.levelMarks", { level: l.name, range: range(l) })}
                   onClick={() => setSelected(l.name)}>
@@ -48,7 +50,7 @@ function GridCard({ grid }: { grid: GridResult }) {
           </button>
         ))}
       </div>
-      <div className="no-print" style={{ background: "var(--paper-2)", border: "1px dashed var(--rule-strong)", borderRadius: 3, padding: "14px 18px", display: "flex", flexDirection: "column", gap: 4 }} aria-live="polite">
+      <div style={{ background: "var(--paper-2)", border: "1px dashed var(--rule-strong)", borderRadius: 3, padding: "14px 18px", display: "flex", flexDirection: "column", gap: 4 }} aria-live="polite">
         <strong className="fell" style={{ fontWeight: 400, fontSize: 20 }}>
           {t("results.levelMarks", { level: sel.name, range: range(sel) })}{sel.name === grid.level ? ` · ${t("results.you")}` : ""}
         </strong>
@@ -58,7 +60,7 @@ function GridCard({ grid }: { grid: GridResult }) {
   );
 }
 
-export function ResultsView({ result, answer, onBack, onIdeal, idealBusy, error }: Props) {
+export function ResultsView({ result, question, answer, onBack, onIdeal, idealBusy, error }: Props) {
   const [done, setDone] = useState<boolean[]>(() => result.level_up_steps.map(() => false));
   const segments = segmentByQuotes(answer, result.annotations);
   const paragraphs = splitParagraphs(segments);
@@ -66,7 +68,9 @@ export function ResultsView({ result, answer, onBack, onIdeal, idealBusy, error 
 
   return (
     <main id="main" className="shell page" style={{ gap: 40 }}>
-      <div className="between no-print" style={{ alignItems: "center" }}>
+      <MarkedPrint result={result} question={question} answer={answer} />
+      <div className="screen-only" style={{ display: "contents" }}>
+      <div className="between" style={{ alignItems: "center" }}>
         <button type="button" className="linkish" onClick={onBack}><BackIcon />{t("results.back")}</button>
         <PrintButton labelKey="print.marked" />
       </div>
@@ -105,7 +109,7 @@ export function ResultsView({ result, answer, onBack, onIdeal, idealBusy, error 
 
       <section aria-labelledby="grids-h" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         <h2 id="grids-h" className="h2">{t("results.trackTitle")}</h2>
-        <p className="no-print" style={{ margin: 0, maxWidth: 760, color: "var(--text-2)" }}>{t("results.trackIntro")}</p>
+        <p style={{ margin: 0, maxWidth: 760, color: "var(--text-2)" }}>{t("results.trackIntro")}</p>
         <div className="row">
           {result.grids.map((g) => <GridCard key={g.id} grid={g} />)}
         </div>
@@ -161,7 +165,7 @@ export function ResultsView({ result, answer, onBack, onIdeal, idealBusy, error 
 
       {error && <p role="alert" className="alert" style={{ margin: 0 }}>{error}</p>}
 
-      <section aria-labelledby="ideal-h" className="cta-band no-print">
+      <section aria-labelledby="ideal-h" className="cta-band">
         <svg aria-hidden="true" width="96" height="96" viewBox="0 0 100 100" style={{ flex: "0 0 auto" }}>
           <path d="M50 4 C62 8 70 2 80 12 C88 20 86 30 94 40 C98 52 92 60 94 70 C90 82 80 84 72 92 C62 98 54 92 44 96 C32 96 26 88 16 82 C8 74 10 64 5 54 C2 42 10 34 10 24 C16 12 28 12 38 6 C42 4 46 4 50 4Z" fill="var(--pen)" />
           <circle cx="50" cy="50" r="30" fill="none" stroke="#C9715A" strokeWidth="2" />
@@ -177,6 +181,7 @@ export function ResultsView({ result, answer, onBack, onIdeal, idealBusy, error 
       </section>
 
       <p className="muted" style={{ margin: 0, fontSize: 14 }}>{t("results.disclaimer")}</p>
+      </div>
     </main>
   );
 }

@@ -6,6 +6,7 @@ import type { BoardInfo } from "@/lib/api";
 import { t } from "@/lib/i18n";
 import { wordCount } from "@/lib/text";
 import { PrintButton } from "./PrintButton";
+import { DraftPrint } from "./PrintSheets";
 import { Stopwatch } from "./Stopwatch";
 
 export interface Draft { board: string; marks: number; target: number; question: string; answer: string }
@@ -40,7 +41,7 @@ export function WriteView(p: Props) {
 
   return (
     <main id="main" className="shell page">
-      <PrintDraft question={draft.question} answer={draft.answer} words={words} marks={draft.marks} />
+      <DraftPrint question={draft.question} answer={draft.answer} words={words} marks={draft.marks} />
       <div className="between screen-only">
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <span className="kicker">{t("write.kicker")}</span>
@@ -118,7 +119,7 @@ export function WriteView(p: Props) {
         </section>
       </form>
 
-      {p.error && <p role="alert" className="alert" style={{ margin: 0 }}>{p.error}</p>}
+      {p.error && <p role="alert" className="alert screen-only" style={{ margin: 0 }}>{p.error}</p>}
 
       <div className="between screen-only" style={{ alignItems: "center" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -139,13 +140,3 @@ export function WriteView(p: Props) {
   );
 }
 
-/** Print-only copy of the draft: the textarea itself prints clipped, so render the text as paragraphs. */
-function PrintDraft({ question, answer, words, marks }: { question: string; answer: string; words: number; marks: number }) {
-  return (
-    <article className="print-only print-draft">
-      <h1 className="q">{question}</h1>
-      <p className="meta">{t("print.draftMeta", { words, marks })}</p>
-      {answer.split(/\n\s*\n/).filter((x) => x.trim()).map((para, i) => <p key={i}>{para}</p>)}
-    </article>
-  );
-}

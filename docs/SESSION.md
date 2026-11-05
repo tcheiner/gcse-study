@@ -79,9 +79,11 @@ logs/                        DDMMYYYY_HH-MM-SS-MS.log, new per start, rotates at
   production, http://127.0.0.1:8000 locally). Keeps the HttpOnly key cookie first-party.
 - Grade output includes `annotations` (verbatim quotes + strength/improve + note) for margin marking;
   model answer `changes[].excerpt` for highlighting. Non-verbatim quotes are dropped server-side.
-- Printing: `PrintButton` calls window.print(); the `@media print` block in globals.css hides chrome
-  (`.no-print`, header), shows `.print-only` (the write page's double-spaced draft for handwritten edits),
-  stacks rows and resets flex-basis so widths don't become heights. Three printouts: draft, marked, full marks.
+- Printing: `PrintButton` calls window.print(). Each page renders a dedicated print-only A4 sheet
+  (`components/PrintSheets.tsx`: DraftPrint, MarkedPrint, IdealPrint) and hides the screen UI (`.screen-only`).
+  Two-column layouts mirror the web page (essay | notes, original | full marks). On `beforeprint` the sheet
+  measures itself at its fixed 182mm width and applies CSS zoom (min 0.5) so it fits one page.
+  Highlights print as underlines (solid = strength, wavy = improve, double = change), not backgrounds.
 - Never read the clock during render (Cache Components prerender error): use `useNow()` from lib/clock.
 
 ## Run

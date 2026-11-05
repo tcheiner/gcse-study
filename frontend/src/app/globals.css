@@ -173,28 +173,59 @@ dialog.key-dialog::backdrop { background: rgba(59, 47, 37, .45); }
 .masked { -webkit-text-security: disc; }
 
 /* ---------- print ---------- */
+/* Each page renders a dedicated A4 sheet (.ps, components/PrintSheets.tsx); the screen UI is hidden. */
 .print-only { display: none; }
+.ps.ps-measure { display: block !important; position: absolute; left: -10000px; top: 0; visibility: hidden; }
 @media print {
-  @page { size: A4; margin: 16mm 16mm 18mm; }
-  :root { --lift: none; }
-  html, body { background: #fff !important; color: #000; }
-  .header, .skip, .no-print, nextjs-portal { display: none !important; }
+  @page { size: A4; margin: 14mm; }
+  html, body { background: #fff !important; }
+  .header, .skip, .screen-only, .no-print, nextjs-portal { display: none !important; }
+  main.shell { padding: 0 !important; max-width: none !important; }
   .print-only { display: block; }
-  .screen-only { display: none !important; }
-  .shell, .page { max-width: none; padding: 0; gap: 18px !important; }
-  .sheet, .index-card { box-shadow: none !important; background: #fff !important; }
-  .row { flex-direction: column; }
-  /* Keep highlight colours and ink: browsers drop backgrounds unless told otherwise. */
-  .hl, .alert, .stamp { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .ruled { background-image: none; }
-  /* Stacked on paper: a flex-basis meant as a width would otherwise become a height. */
-  .row > *, .sheet > * { flex-basis: auto !important; }
-  li, .grid-card, .alert { break-inside: avoid; }
-  h1, h2, h3 { break-after: avoid; }
 }
 
-/* Printed draft for handwritten edits: double-spaced, wide right margin. */
-.print-draft { font-family: var(--font-type); color: #000; }
-.print-draft .q { font-family: var(--font-fell); font-size: 18pt; margin: 0 0 4mm; }
-.print-draft .meta { font-size: 9pt; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 8mm; border-bottom: 1px solid #999; padding-bottom: 3mm; }
-.print-draft p { font-size: 12pt; line-height: 2.4; margin: 0 0 5mm; padding-right: 45mm; white-space: pre-wrap; }
+.ps { width: 182mm; color: #1d1610; font-family: var(--font-type); font-size: 9.5pt; line-height: 1.45; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ps p { margin: 0; }
+.ps-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; padding-bottom: 3mm; border-bottom: 1.5px solid #1d1610; margin-bottom: 4mm; }
+.ps-head-text { display: flex; flex-direction: column; gap: 1.2mm; min-width: 0; }
+.ps-kicker, .ps-meta, .ps-col-label, .ps-stamp-label { font-size: 7.5pt; letter-spacing: .14em; text-transform: uppercase; color: #5b4d3f; }
+.ps-q { margin: 0; font-family: var(--font-fell); font-weight: 400; font-size: 17pt; line-height: 1.15; }
+.ps-stamp { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: .5mm; padding: 2mm 5mm; border: 2px solid var(--pen); color: var(--pen); border-radius: 2mm; transform: rotate(-3deg); }
+.ps-stamp-label { color: var(--pen); }
+.ps-stamp-score { font-family: var(--font-fell); font-size: 28pt; line-height: 1; }
+.ps-stamp-score small { font-size: 14pt; }
+.ps-cols { display: grid; gap: 6mm; }
+.ps-grids, .ps-pair { grid-template-columns: 1fr 1fr; }
+.ps-essay { grid-template-columns: 1fr 56mm; }
+.ps-box { border: 1px solid #b9ab94; border-radius: 1.5mm; padding: 2.5mm 3.5mm; display: flex; flex-direction: column; gap: 1mm; }
+.ps-h { margin: 0 0 1.5mm; display: flex; justify-content: space-between; align-items: baseline; gap: 3mm; font-family: var(--font-type); font-size: 8pt; letter-spacing: .12em; text-transform: uppercase; }
+.ps-h b { font-family: var(--font-fell); font-weight: 400; font-size: 16pt; letter-spacing: 0; }
+.ps-h b small { font-size: 9pt; color: #5b4d3f; }
+.ps-level { font-weight: 700; }
+.ps-drop { margin: 4mm 0 !important; padding: 2mm 3.5mm; border-left: 3px solid var(--ink); background: #f6efe4; }
+.ps-drop.on { border-left-color: var(--pen); background: #f8e6dd; color: #6e2a17; }
+.ps-text p { margin: 0 0 2.5mm; font-size: 10pt; line-height: 1.75; white-space: pre-wrap; }
+.ps-hl { text-decoration-line: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.ps-hl-strength { text-decoration-color: var(--ink); }
+.ps-hl-improve { text-decoration-color: var(--pen); text-decoration-style: wavy; }
+.ps-hl-change { text-decoration-color: var(--ink); text-decoration-style: double; }
+.ps-hl sup { font-size: 6.5pt; font-weight: 700; margin-left: .5mm; }
+.ps-notes { border-left: 1px dashed #b9ab94; padding-left: 4mm; }
+.ps-notes ol, .ps-steps ol, .ps-changes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2.5mm; }
+.ps-notelist li { font-family: var(--font-fell); font-style: italic; font-size: 11pt; line-height: 1.3; }
+.ps-notelist li b, .ps-changes li > b { font-family: var(--font-type); font-style: normal; font-size: 7.5pt; margin-right: 1.5mm; }
+.ps-note-strength { color: var(--ink); }
+.ps-note-improve { color: #8a3a22; }
+.ps-legend { margin-top: 4mm !important; font-size: 7.5pt; display: flex; gap: 4mm; }
+.ps-steps { margin-top: 4mm; border-top: 1px solid #b9ab94; padding-top: 3mm; }
+.ps-steps li { display: flex; gap: 2mm; align-items: baseline; }
+.ps-box-tick { flex: 0 0 auto; width: 3.2mm; height: 3.2mm; border: 1px solid #1d1610; transform: translateY(.5mm); }
+.ps-changes li { display: flex; gap: 2mm; }
+.ps-changes li div { display: flex; flex-direction: column; gap: .5mm; }
+.ps-changes li span { font-family: var(--font-fell); font-style: italic; font-size: 10.5pt; line-height: 1.3; color: #3d3127; }
+.ps-pair + section { margin-top: 4mm; border-top: 1px solid #b9ab94; padding-top: 3mm; }
+.ps-pair + section .ps-changes { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5mm 6mm; }
+.ps-col-label { margin-bottom: 2mm !important; }
+.ps-foot { margin-top: 4mm !important; font-size: 7pt; color: #6b5d4f; }
+/* Draft for handwritten edits: double-spaced, wide right margin. */
+.ps-draft .ps-text p { font-size: 11.5pt; line-height: 2.4; padding-right: 48mm; margin-bottom: 4mm; }

@@ -89,10 +89,10 @@ export function EnglishStudio() {
   }
 
   if (view === "ideal" && ideal && grade && submitted.current) {
-    return <ModelAnswerView ideal={ideal} original={submitted.current.answer} grade={grade} onBack={() => setView("results")} />;
+    return <ModelAnswerView ideal={ideal} original={submitted.current.answer} question={submitted.current.question} grade={grade} onBack={() => setView("results")} />;
   }
   if (view !== "write" && grade && submitted.current) {
-    return <ResultsView result={grade} answer={submitted.current.answer} onBack={() => { setError(null); setView("write"); }}
+    return <ResultsView result={grade} question={submitted.current.question} answer={submitted.current.answer} onBack={() => { setError(null); setView("write"); }}
                         onIdeal={requestIdeal} idealBusy={busy} error={error} />;
   }
   return (
