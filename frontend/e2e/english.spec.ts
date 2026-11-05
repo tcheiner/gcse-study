@@ -149,7 +149,7 @@ test("print buttons open the print dialog and each page prints a one-page A4 she
   await page.emulateMedia({ media: "screen" });
 
   await page.getByRole("button", { name: /show full-marks version/i }).click();
-  await page.getByRole("button", { name: "Print", exact: true }).click();
+  await page.getByRole("button", { name: "Print full-marks version" }).click();
   expect(await page.evaluate(() => (window as unknown as { printed: number }).printed)).toBe(3);
 });
 

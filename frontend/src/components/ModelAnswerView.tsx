@@ -44,8 +44,8 @@ export function ModelAnswerView({ ideal, original, question, grade, onBack }: Pr
               <button key={id} type="button" role="radio" aria-checked={view === id} onClick={() => setView(id)}>{label}</button>
             ))}
           </div>
-          <button type="button" className="btn btn-small" onClick={copy} aria-live="polite">{copied ? t("ideal.copied") : t("ideal.copy")}</button>
-          <PrintButton labelKey="print.ideal" className="btn btn-small" />
+          <button type="button" className="btn-raised" onClick={copy} aria-live="polite">{copied ? t("ideal.copied") : t("ideal.copy")}</button>
+          <PrintButton labelKey="print.ideal" />
         </div>
       </div>
 

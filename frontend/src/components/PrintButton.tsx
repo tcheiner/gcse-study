@@ -7,9 +7,10 @@ const PrinterIcon = () => (
 );
 
 /** Opens the browser's print dialog (paper or PDF). The print stylesheet in globals.css lays out the page. */
-export function PrintButton({ labelKey, className = "linkish" }: { labelKey: string; className?: string }) {
+/** The one print button style, used on every page. */
+export function PrintButton({ labelKey }: { labelKey: string }) {
   return (
-    <button type="button" className={`${className} no-print`} onClick={() => window.print()}>
+    <button type="button" className="btn-raised no-print" onClick={() => window.print()}>
       <PrinterIcon />{t(labelKey)}
     </button>
   );

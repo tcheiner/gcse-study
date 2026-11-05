@@ -153,7 +153,7 @@
   "print": {
     "draft": "Print to edit",
     "marked": "Print marked essay",
-    "ideal": "Print",
+    "ideal": "Print full-marks version",
     "draftMeta": "{words} words · {marks}-mark composition · edit in the margin, then retype",
     "notesTitle": "Examiner's notes",
     "draftKicker": "Draft for editing",
