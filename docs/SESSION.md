@@ -84,6 +84,8 @@ logs/                        DDMMYYYY_HH-MM-SS-MS.log, new per start, rotates at
   Two-column layouts mirror the web page (essay | notes, original | full marks). On `beforeprint` the sheet
   measures itself at its fixed 182mm width and applies CSS zoom (min 0.5) so it fits one page.
   Highlights print as underlines (solid = strength, wavy = improve, double = change), not backgrounds.
+- Footer: `Footer` (screen) and every print sheet show "© {year} Giant Growth"; year is `appConfig.copyrightYear`.
+  The "Powered by Netlify" badge is injected by Netlify on the free plan and cannot be hidden there.
 - Never read the clock during render (Cache Components prerender error): use `useNow()` from lib/clock.
 
 ## Run

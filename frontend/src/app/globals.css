@@ -172,6 +172,10 @@ dialog.key-dialog::backdrop { background: rgba(59, 47, 37, .45); }
 .key-status .lamp.on { background: var(--ink); box-shadow: 0 0 0 3px var(--ink-soft); }
 .masked { -webkit-text-security: disc; }
 
+/* ---------- footer ---------- */
+.footer { border-top: 1px solid var(--rule-strong); margin-top: 24px; }
+.footer p { max-width: 1180px; margin: 0 auto; padding: 18px 24px 28px; font-size: 13px; letter-spacing: .08em; color: var(--muted); }
+
 /* ---------- print ---------- */
 /* Each page renders a dedicated A4 sheet (.ps, components/PrintSheets.tsx); the screen UI is hidden. */
 .print-only { display: none; }
@@ -226,6 +230,6 @@ dialog.key-dialog::backdrop { background: rgba(59, 47, 37, .45); }
 .ps-pair + section { margin-top: 4mm; border-top: 1px solid #b9ab94; padding-top: 3mm; }
 .ps-pair + section .ps-changes { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5mm 6mm; }
 .ps-col-label { margin-bottom: 2mm !important; }
-.ps-foot { margin-top: 4mm !important; font-size: 7pt; color: #6b5d4f; }
+.ps-foot { margin-top: 5mm !important; padding-top: 2mm; border-top: 1px solid #d8ccb8; font-size: 7pt; letter-spacing: .06em; color: #6b5d4f; }
 /* Draft for handwritten edits: double-spaced, wide right margin. */
 .ps-draft .ps-text p { font-size: 11.5pt; line-height: 2.4; padding-right: 48mm; margin-bottom: 4mm; }

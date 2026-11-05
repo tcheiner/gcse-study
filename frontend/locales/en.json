@@ -161,5 +161,8 @@
     "markedMeta": "{genre} · {words} words · time {time}",
     "idealKicker": "Full-marks version",
     "idealMeta": "Your original {awarded} / {max} · rewritten to full marks"
+  },
+  "footer": {
+    "copyright": "© {year} Giant Growth. All rights reserved."
   }
 }

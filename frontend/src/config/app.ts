@@ -17,6 +17,8 @@ export const appConfig = {
   keyTickMs: 15_000,
   /** Mirrors backends/english/config/settings.yaml `session` (display only; the server enforces). */
   keySession: { idleMinutes: 20, absoluteMinutes: 120 },
+  /** Shown in the site and print footers (a constant: the clock must not be read during render). */
+  copyrightYear: 2026,
   /** Where students create a Claude key. */
   claudeConsoleUrl: "https://platform.claude.com/settings/keys",
 } as const;

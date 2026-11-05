@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { appConfig } from "@/config/app";
 import type { Annotation, GradeResult, ModelAnswer } from "@/lib/api";
 import { t } from "@/lib/i18n";
 import { formatClock, segmentByQuotes, toRoman } from "@/lib/text";
@@ -33,7 +34,12 @@ function PrintPage({ className, children }: { className: string; children: React
     window.addEventListener("afterprint", reset);
     return () => { window.removeEventListener("beforeprint", fit); window.removeEventListener("afterprint", reset); };
   }, []);
-  return <div ref={ref} className={`print-only ps ${className}`}>{children}</div>;
+  return (
+    <div ref={ref} className={`print-only ps ${className}`}>
+      {children}
+      <p className="ps-foot">{t("footer.copyright", { year: appConfig.copyrightYear })}</p>
+    </div>
+  );
 }
 
 const paragraphs = (text: string) => text.split(/\n\s*\n/).filter((p) => p.trim());
@@ -128,7 +134,6 @@ export function MarkedPrint({ result, question, answer }: { result: GradeResult;
         <h2 className="ps-h">{t("results.tryTitle")}</h2>
         <ol>{result.level_up_steps.map((s, i) => <li key={i}><span className="ps-box-tick" aria-hidden="true" /><b>{toRoman(i + 1)}.</b> {s}</li>)}</ol>
       </section>
-      <p className="ps-foot">{t("results.disclaimer")}</p>
     </PrintPage>
   );
 }

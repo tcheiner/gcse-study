@@ -165,3 +165,12 @@ test("a long essay is scaled to fit one printed page", async ({ page }) => {
   await page.evaluate(() => window.dispatchEvent(new Event("afterprint")));
   await expect(page.locator(".ps-draft")).toHaveAttribute("style", /^$|^\s*$/);
 });
+
+test("copyright footer is on the page and on printed sheets", async ({ page }) => {
+  await mockBackend(page);
+  await page.goto("/english");
+  await expect(page.getByRole("contentinfo")).toHaveText("© 2026 Giant Growth. All rights reserved.");
+  await page.emulateMedia({ media: "print" });
+  await expect(page.getByRole("contentinfo")).toBeHidden();
+  await expect(page.locator(".ps-draft .ps-foot")).toHaveText("© 2026 Giant Growth. All rights reserved.");
+});
