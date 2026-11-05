@@ -11,6 +11,8 @@ export const appConfig = {
   defaultTariff: 40,
   /** Marking runs as a background job; the page checks this often (ms) and gives up after maxWaitMs. */
   jobs: { pollMs: 2000, maxWaitMs: 5 * 60_000 },
+  /** Sample compositions for "Fill with a sample", in order (text in locales/en.json `samples`). */
+  sampleIds: ["descriptive", "narrative"],
   /** How often the key indicator re-checks its countdown (ms). */
   keyTickMs: 15_000,
   /** Mirrors backends/english/config/settings.yaml `session` (display only; the server enforces). */

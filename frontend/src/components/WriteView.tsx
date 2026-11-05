@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { appConfig } from "@/config/app";
 import type { BoardInfo } from "@/lib/api";
 import { t } from "@/lib/i18n";
@@ -27,6 +28,14 @@ export function WriteView(p: Props) {
   const tariffs = board?.tariffs ?? [draft.marks];
   const words = wordCount(draft.answer);
   const digits = String(Math.min(words, 9999)).padStart(4, "0").split("");
+  const [nextSample, setNextSample] = useState(0);
+
+  function fillSample() {
+    if ((draft.question.trim() || draft.answer.trim()) && !window.confirm(t("write.sampleConfirm"))) return;
+    const id = appConfig.sampleIds[nextSample % appConfig.sampleIds.length];
+    p.onChange({ question: t(`samples.${id}.question`), answer: t(`samples.${id}.answer`) });
+    setNextSample((n) => n + 1);
+  }
 
   return (
     <main id="main" className="shell page">
@@ -43,7 +52,10 @@ export function WriteView(p: Props) {
 
       <form className="row" onSubmit={(e) => { e.preventDefault(); p.onSubmit(); }} id="submission">
         <section aria-labelledby="card-h" className="index-card" style={{ flex: "1 1 340px", minWidth: 0 }}>
-          <h2 id="card-h" className="h2i" style={{ height: 34 }}>{t("write.cardTitle")}</h2>
+          <div className="between" style={{ alignItems: "baseline" }}>
+            <h2 id="card-h" className="h2i" style={{ height: 34 }}>{t("write.cardTitle")}</h2>
+            <button type="button" className="linkish" onClick={fillSample}>{t("write.sample")}</button>
+          </div>
 
           <div className="field">
             <label htmlFor="board" className="label">{t("write.board")}</label>

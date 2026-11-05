@@ -67,7 +67,9 @@
     "submit": "Submit for marking",
     "submitting": "Marking…",
     "keptLocal": "Your writing stays in this tab only. Nothing is saved.",
-    "fixedMarks": "Composition · {marks} marks"
+    "fixedMarks": "Composition · {marks} marks",
+    "sample": "Fill with a sample",
+    "sampleConfirm": "Replace your question and answer with a sample?"
   },
   "results": {
     "back": "Back to my answer",
@@ -137,5 +139,15 @@
     "bad_origin": "This request was blocked for safety. Please reload the page.",
     "job_missing": "That result is no longer available. Please try again.",
     "timeout": "This is taking much longer than usual. Please try again in a moment."
+  },
+  "samples": {
+    "descriptive": {
+      "question": "Describe an object that has been broken for a long time.",
+      "answer": "The object I am going to describe is a old bike. It is in my garage. It has been broken for a long time.\n\nThe bike is red. It is rusty. The chain is broken and the tyres are flat. The seat is ripped and there is stuff coming out of it. It is very dusty and there are spider webs on it. It looks sad. it is really old.\n\nMy dad gave me the bike for my birthday when I was seven. I rode it every day after school. One day me and my freind Sam went to the park and I went down a big hill realy fast and then I hit a rock and then I fell off and then the chain broke. I was crying and Sam ran to get my mum and then we went home and my dad said he would fix it but he never did.\n\nNow the bike just sits there in the garage next to the lawnmower and some boxes. Nobody uses it anymore its to small for me now anyway.\n\nThen I woke up and it was all a dream and the bike was fixed."
+    },
+    "narrative": {
+      "question": "Write a story with the title, 'The ball'.",
+      "answer": "One day there was a boy called Jake and he loved football. He played football every day with his friends at the park.\n\nOn saturday Jake went to the park with his ball. He kicked the ball really hard and it went over the fence into a old house's garden. Everyone said the house was haunted. Jake was scared but he wanted his ball back so he climbed over the fence.\n\nThen he saw a old man. The old man was angry and shouted at him. Then Jake ran away. Then he remembered his ball so he went back and then the old man gave him the ball and said sorry for shouting and then they was friends. Then Jake went home and had his tea.\n\nThe next day Jake played football again and he was happy. Then he woke up and it was all a dream. The end."
+    }
   }
 }

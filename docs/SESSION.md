@@ -34,6 +34,8 @@ frontend/
   src/lib/                             api.ts (typed client), i18n.ts, text.ts, clock.ts (useNow store)
   locales/en.json                      ALL user-facing text
   src/__tests__/ (Vitest), e2e/ (Playwright, backend mocked via page.route)
+tests/samples/               weak compositions to paste in for manual testing (same text as the
+                             write page's "Fill with a sample" button, locales/en.json `samples`)
 netlify.toml, render.yaml           deploy config (no secrets)
 config/secrets.example.env   template for config/secrets.env (gitignored): ALL credentials live there
 logs/                        DDMMYYYY_HH-MM-SS-MS.log, new per start, rotates at midnight (gitignored)

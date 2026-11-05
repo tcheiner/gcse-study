@@ -41,4 +41,23 @@ describe("WriteView", () => {
     await userEvent.setup().click(screen.getByRole("button", { name: /submit for marking/i }));
     expect(onSubmit).toHaveBeenCalledOnce();
   });
+
+  it("fills a sample, cycling, and asks before replacing work", async () => {
+    const user = userEvent.setup();
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<Harness />);
+    await user.click(screen.getByRole("button", { name: "Fill with a sample" }));
+    expect(confirm).not.toHaveBeenCalled(); // nothing to lose yet
+    expect(screen.getByLabelText("Type or paste the question")).toHaveValue("Describe an object that has been broken for a long time.");
+    expect((screen.getByLabelText("Your answer") as HTMLTextAreaElement).value).toContain("Then I woke up");
+
+    await user.click(screen.getByRole("button", { name: "Fill with a sample" }));
+    expect(confirm).toHaveBeenCalledOnce(); // declined: unchanged
+    expect(screen.getByLabelText("Type or paste the question")).toHaveValue("Describe an object that has been broken for a long time.");
+
+    confirm.mockReturnValue(true);
+    await user.click(screen.getByRole("button", { name: "Fill with a sample" }));
+    expect(screen.getByLabelText("Type or paste the question")).toHaveValue("Write a story with the title, 'The ball'.");
+    confirm.mockRestore();
+  });
 });
