@@ -8,11 +8,13 @@ marks it against the board's mark scheme. The mark scheme is explained in plain 
 for their own answer rewritten to full marks. One backend per subject; one Next.js frontend with a theme per subject.
 
 ## Status
-- English Paper 2, Pearson Edexcel IGCSE, 6/9/12-mark questions: backend built (`backends/english`).
+- English: Cambridge IGCSE First Language English 0990, Paper 2 Section B (Composition, 40 marks):
+  backend built (`backends/english`). Edexcel 6/9/12 was removed in favour of Cambridge (2026-11-05).
 - Frontend: built (`frontend/`, Next.js 16, App Router, Cache Components). Vintage typewriter theme,
   walnut ink for English. Single-page flow: write -> results -> full-marks version. Nothing persisted.
 - Deploy: Netlify (frontend, site `y11-gcse`, netlify.toml base=frontend) + Render (backend, render.yaml).
-- Mark schemes are DRAFT paraphrases; verify against official Pearson mark schemes.
+- Mark scheme: official Cambridge wording, Tables D and E of the 0990/02 specimen mark scheme (exam from 2027).
+  The source PDF is kept locally in `rules/` (not committed: Cambridge copyright).
 
 ## Layout
 ```
@@ -20,7 +22,7 @@ backends/
   shared/          gcse_shared: config loader, logging (CLAUDE.md format), Claude structured-output wrapper
   english/         FastAPI app (uv project)
     config/settings.yaml               model, effort, limits, CORS, rate limit, log mode
-    config/mark_schemes/<board>/       board.yaml + paper2_<tariff>.yaml (levels-based)
+    config/mark_schemes/<board>/       board.yaml + paper2_<tariff>.yaml (two best-fit grids)
     src/english_grader/prompts/*.md    prompt templates ($placeholders, string.Template)
     src/english_grader/                main.py (routes), grader.py, mark_schemes.py, schemas.py
     tests/                             pytest; Claude client faked via app.state.llm_client
@@ -46,15 +48,19 @@ logs/                        DDMMYYYY_HH-MM-SS-MS.log, new per start, rotates at
   result, code, message}. Needed because Netlify's proxy times out long Claude calls (full-marks rewrite).
   Jobs (`gcse_shared/jobs.py`): in memory only, bound to the session (sha256 of key+issued_at), removed on
   first read, 10 min TTL, max 2 pending per session. Single process only (Render free); scale-out needs Redis.
-- `POST /grade` {board, marks, question, answer, time_taken_seconds?} -> mark, level, AO ratings, strengths,
-  improvements, examiner summary, mark-scheme explainer, word count, time taken
+- `POST /grade` {board, marks: 40, question, answer, time_taken_seconds?} -> total /40, genre, two grids
+  (content_structure /16, style_accuracy /24: score, level, justification, all levels), level_drop
+  {triggered, explanation}, exactly two level_up_steps, annotations, overview, word count, time taken
 - `POST /model-answer` -> student's answer rewritten to full marks + list of changes
 - Errors: `{code, message}`; the frontend translates `code` via its locale file. Job failures arrive as
   `status: "error"` with the same codes; frontend `runJob()` (lib/api.ts) turns them into ApiError.
 
 ## Patterns
 - Claude: `claude-opus-5-5`, effort high, `messages.parse` with Pydantic output, server-side refusal fallback.
-- `reconcile()` treats the mark as primary: clamps to 0..tariff and derives the level from the band.
+- Marking prompt = the owner's examiner prompt (holistic best fit, genre first, level-drop check, two steps)
+  with the grid lines rendered from YAML (official Table D/E wording, incl. descriptive/narrative specifics).
+- `reconcile()` clamps each grid score to 0..max; the server derives each level from its band and sums the
+  total (Claude never supplies the total). Keeps at most 2 level-up steps.
 - Student text is wrapped in tags and treated as data (prompt-injection guard).
 - Key sessions (`gcse_shared/key_session.py`): AES-256-GCM with KEY_ENCRYPTION_KEY; cookie is HttpOnly,
   Secure, SameSite=strict, browser-session only; 20 min idle / 120 min absolute (settings.yaml); Origin checked.

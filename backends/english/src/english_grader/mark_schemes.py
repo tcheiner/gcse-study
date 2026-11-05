@@ -26,14 +26,19 @@ class MarkScheme:
         return int(self.scheme["tariff"])
 
     @property
-    def levels(self) -> list[dict[str, Any]]:
-        return self.scheme["levels"]
+    def grids(self) -> list[dict[str, Any]]:
+        return self.scheme["grids"]
 
-    def level(self, n: int) -> dict[str, Any] | None:
-        return next((lv for lv in self.levels if lv["level"] == n), None)
+    @property
+    def genres(self) -> list[dict[str, Any]]:
+        return self.scheme["genres"]
 
-    def level_for_mark(self, mark: int) -> dict[str, Any] | None:
-        return next((lv for lv in self.levels if lv["min"] <= mark <= lv["max"]), None)
+    def grid(self, grid_id: str) -> dict[str, Any]:
+        return next(g for g in self.grids if g["id"] == grid_id)
+
+    @staticmethod
+    def level_for_score(grid: dict[str, Any], score: int) -> dict[str, Any] | None:
+        return next((lv for lv in grid["levels"] if lv["min"] <= score <= lv["max"]), None)
 
 
 class MarkSchemeRepo:

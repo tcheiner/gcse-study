@@ -5,9 +5,10 @@ export const appConfig = {
   /** Default backend for local dev when ENGLISH_API_URL is unset. */
   defaultEnglishApiUrl: "http://127.0.0.1:8000",
   /** Optional timer targets in minutes; 0 = no limit. */
-  timerTargets: [0, 10, 15, 20, 30],
-  defaultTimerTarget: 15,
-  defaultTariff: 12,
+  timerTargets: [0, 30, 45, 60],
+  defaultTimerTarget: 45,
+  /** Composition (Cambridge 0990 Paper 2 Section B) is marked out of 40. */
+  defaultTariff: 40,
   /** Marking runs as a background job; the page checks this often (ms) and gives up after maxWaitMs. */
   jobs: { pollMs: 2000, maxWaitMs: 5 * 60_000 },
   /** How often the key indicator re-checks its countdown (ms). */

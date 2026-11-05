@@ -10,7 +10,7 @@ import { ResultsView } from "./ResultsView";
 import { WriteView, type Draft } from "./WriteView";
 
 const FALLBACK_BOARDS: BoardInfo[] = [
-  { id: "edexcel-igcse", name: "Pearson Edexcel International GCSE", specification: "", paper: 2, tariffs: [6, 9, 12], status: "draft" },
+  { id: "cambridge-0990", name: "Cambridge IGCSE First Language English", specification: "", paper: 2, tariffs: [40], status: "official" },
 ];
 
 type View = "write" | "results" | "ideal";
@@ -32,7 +32,7 @@ export function EnglishStudio() {
   const submitted = useRef<Submission | null>(null);
 
   useEffect(() => {
-    api.boards().then((b) => { if (b.length) { setBoards(b); setDraft((d) => ({ ...d, board: b[0].id })); } }).catch(() => {});
+    api.boards().then((b) => { if (b.length) { setBoards(b); setDraft((d) => ({ ...d, board: b[0].id, marks: b[0].tariffs.at(-1) ?? d.marks })); } }).catch(() => {});
   }, []);
   useEffect(() => {
     if (!running) return;

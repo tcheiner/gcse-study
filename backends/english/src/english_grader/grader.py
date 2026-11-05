@@ -10,11 +10,15 @@ from gcse_shared.logging import LOGGER_NAME, logged
 
 from .mark_schemes import MarkScheme
 from .schemas import (
-    GradeResponse, LevelInfo, LLMGrade, LLMModelAnswer, MarkSchemeExplainer,
-    ModelAnswerResponse, ObjectiveInfo, SubmissionRequest,
+    GradeResponse, GridResult, GridScore, LevelInfo, LLMGrade, LLMModelAnswer, ModelAnswerResponse,
+    SubmissionRequest,
 )
 
 log = logging.getLogger(LOGGER_NAME)
+
+GRID_FIELDS = ("content_structure", "style_accuracy")  # LLMGrade field per grid id, in marking order
+MAX_ANNOTATIONS = 8
+LEVEL_UP_STEPS = 2
 
 
 def word_count(text: str) -> int:
@@ -29,73 +33,77 @@ class Prompts:
         return self._t[name].safe_substitute(**values)
 
 
+def _marks(lv: dict) -> str:
+    return f"{lv['min']}–{lv['max']}" if lv["min"] != lv["max"] else str(lv["min"])
+
+
+def _level_lines(lv: dict) -> str:
+    lines = [f"- {lv['name']} ({_marks(lv)} marks): {lv['descriptor']}"]
+    lines += [f"    {genre.capitalize()}: {lv[genre]}" for genre in ("descriptive", "narrative") if lv.get(genre)]
+    return "\n".join(lines)
+
+
 def _scheme_values(ms: MarkScheme) -> dict[str, object]:
-    objectives = "\n".join(
-        f"- {ao['code']} ({ao['label']}): {ao['descriptor']}" for ao in ms.scheme["assessment_objectives"]
+    genres = "\n".join(f"- {g['label']}: {g['rule']}" for g in ms.genres)
+    grids = "\n\n".join(
+        f"{i}. {g['label'].upper()} (Out of {g['max']} Marks, {g['table']}):\n"
+        + "\n".join(_level_lines(lv) for lv in g["levels"])
+        for i, g in enumerate(ms.grids, start=1)
     )
-    levels = "\n".join(
-        f"- Level {lv['level']} ({lv['min']}–{lv['max']} marks): {lv['descriptor']}" for lv in ms.levels
+    top_levels = "\n".join(
+        f"- {g['label']} ({_marks(g['levels'][0])} of {g['max']}): {g['levels'][0]['descriptor']}" for g in ms.grids
     )
-    top = max(ms.levels, key=lambda lv: lv["level"])
     return dict(
-        board_name=ms.board["name"], specification=ms.board["specification"], paper=ms.board["paper"],
-        tariff=ms.tariff, question_type=ms.scheme["question_type"], objectives=objectives, levels=levels,
-        top_min=top["min"], top_max=top["max"], top_descriptor=top["descriptor"],
+        examiner_title=ms.board["examiner_title"], paper=ms.board["paper"], section=ms.board["section"],
+        tariff=ms.tariff, genres=genres, grids=grids, top_levels=top_levels,
+        cs_max=ms.grid("content_structure")["max"], sa_max=ms.grid("style_accuracy")["max"],
     )
 
 
 @logged
 def reconcile(grade: LLMGrade, ms: MarkScheme, answer: str = "") -> LLMGrade:
-    """Keep the mark, level and objectives consistent with the mark scheme.
-
-    The mark is treated as the primary judgement: it is clamped into 0..tariff and
-    the level is derived from whichever band contains it.
-    """
-    awarded = max(0, min(grade.awarded, ms.tariff))
-    band = ms.level_for_mark(awarded)
-    level = band["level"] if band else grade.level
-    if awarded != grade.awarded or level != grade.level:
-        log.warning(
-            "model mark/level adjusted: %s/L%s -> %s/L%s", grade.awarded, grade.level, awarded, level,
-            extra={"phase": "EXIT", "fn": "reconcile"},
-        )
+    """Clamp each grid score into its range, keep verbatim annotations and exactly two steps."""
+    updates: dict[str, object] = {}
+    for field in GRID_FIELDS:
+        raw: GridScore = getattr(grade, field)
+        score = max(0, min(raw.score, ms.grid(field)["max"]))
+        if score != raw.score:
+            log.warning("model %s score adjusted: %s -> %s", field, raw.score, score,
+                        extra={"phase": "EXIT", "fn": "reconcile"})
+        updates[field] = raw.model_copy(update={"score": score})
     # Annotations must quote the response exactly, or the frontend cannot highlight them.
-    annotations = [a for a in grade.annotations if a.quote.strip() and a.quote in answer][:8]
-    known = [ao["code"] for ao in ms.scheme["assessment_objectives"]]
-    objectives = sorted((o for o in grade.objectives if o.code in known), key=lambda o: known.index(o.code))
-    return grade.model_copy(update={"awarded": awarded, "level": level, "objectives": objectives,
-                                    "annotations": annotations})
+    updates["annotations"] = [a for a in grade.annotations if a.quote.strip() and a.quote in answer][:MAX_ANNOTATIONS]
+    updates["level_up_steps"] = [s for s in grade.level_up_steps if s.strip()][:LEVEL_UP_STEPS]
+    return grade.model_copy(update=updates)
 
 
-def explainer(ms: MarkScheme) -> MarkSchemeExplainer:
-    return MarkSchemeExplainer(
-        overview=ms.scheme["student_overview"],
-        objectives=[ObjectiveInfo(code=a["code"], label=a["label"], student_summary=a["student_summary"])
-                    for a in ms.scheme["assessment_objectives"]],
-        levels=[LevelInfo(level=lv["level"], min=lv["min"], max=lv["max"], student_summary=lv["student_summary"])
-                for lv in ms.levels],
-        status=ms.board.get("status", "draft"),
+def _grid_result(grid: dict, scored: GridScore) -> GridResult:
+    band = MarkScheme.level_for_score(grid, scored.score) or {"name": "", "student_summary": ""}
+    return GridResult(
+        id=grid["id"], label=grid["label"], student_summary=grid["student_summary"], score=scored.score,
+        max=grid["max"], level=band["name"], level_summary=band["student_summary"],
+        justification=scored.justification,
+        levels=[LevelInfo(name=lv["name"], min=lv["min"], max=lv["max"], student_summary=lv["student_summary"])
+                for lv in grid["levels"]],
     )
 
 
 @logged
 async def grade(req: SubmissionRequest, ms: MarkScheme, prompts: Prompts, llm: LLMSettings,
                 api_key: str | None, client=None) -> GradeResponse:
-    values = _scheme_values(ms)
     raw = await structured_call(
         settings=llm,
-        system=prompts.render("grade_system", **values),
+        system=prompts.render("grade_system", **_scheme_values(ms)),
         user=prompts.render("grade_user", question=req.question, answer=req.answer),
         output_type=LLMGrade, api_key=api_key, client=client,
     )
     g = reconcile(raw, ms, req.answer)
-    band = ms.level(g.level) or {"student_summary": ""}
+    grids = [_grid_result(ms.grid(f), getattr(g, f)) for f in GRID_FIELDS]
     return GradeResponse(
         board=req.board, word_count=word_count(req.answer), time_taken_seconds=req.time_taken_seconds,
-        awarded=g.awarded, max=ms.tariff, level=g.level,
-        level_summary=band["student_summary"], objectives=g.objectives, strengths=g.strengths,
-        improvements=g.improvements, annotations=g.annotations, examiner_summary=g.examiner_summary,
-        mark_scheme=explainer(ms),
+        awarded=sum(gr.score for gr in grids), max=ms.tariff, genre=g.genre, grids=grids,
+        level_drop=g.level_drop, level_up_steps=g.level_up_steps, annotations=g.annotations,
+        overview=ms.scheme["student_overview"], status=ms.board.get("status", "draft"),
     )
 
 

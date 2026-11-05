@@ -19,7 +19,7 @@ describe("formatClock", () => {
 
 describe("toRoman", () => {
   it("handles levels and tariffs", () => {
-    expect([0, 1, 2, 3, 4, 6, 9, 12].map(toRoman)).toEqual(["0", "I", "II", "III", "IV", "VI", "IX", "XII"]);
+    expect([0, 1, 2, 3, 4, 6, 9, 12, 16, 24, 40].map(toRoman)).toEqual(["0", "I", "II", "III", "IV", "VI", "IX", "XII", "XVI", "XXIV", "XL"]);
   });
 });
 

@@ -1,0 +1,112 @@
+# Paper 2 Section B: one composition, descriptive or narrative, marked holistically ("best fit") on two grids.
+# Level descriptors are Cambridge's wording (Tables D and E); student_summary lines are our plain-English versions.
+tariff: 40
+question_type: Composition (descriptive or narrative)
+marking: grids
+genres:
+  - id: descriptive
+    label: Descriptive
+    rule: 'Must focus on imagery, atmosphere, and spatial/temporal shifts. It must NOT turn into a narrative plot.'
+  - id: narrative
+    label: Narrative
+    rule: 'Must focus on controlled pacing, character depth, managing a climax, and a purposeful resolution. It must NOT be a rushed timeline.'
+grids:
+  - id: content_structure
+    label: Content & Structure
+    table: Table D
+    max: 16
+    student_summary: How well your ideas, genre and shape work as a whole piece (W1, W2).
+    levels:
+      - name: Level 6
+        min: 14
+        max: 16
+        descriptor: 'Content is highly focused on the task, complex and engaging. (W1) Structure is secure, well balanced and carefully managed for deliberate effect. (W2)'
+        descriptive: 'Creates well-defined and developed ideas and images in response to the prompt to offer a convincing overall picture. Uses features of descriptive writing such as close observation, effective use of figurative language and varieties of focus.'
+        narrative: 'Crafts a well-defined and strongly developed plot in response to the prompt. Uses features of fiction writing such as description, characterisation and effective climax, with convincing details.'
+        student_summary: 'Complex, engaging and tightly focused, with a structure shaped on purpose.'
+      - name: Level 5
+        min: 11
+        max: 13
+        descriptor: 'Content is well focused on the task, developed and mostly engaging. (W1) Structure is well managed, with some choices made for deliberate effect. (W2)'
+        descriptive: 'Offers some well-chosen images and details in response to the prompt to give a mostly convincing picture.'
+        narrative: 'The plot is defined and developed with features of fiction writing such as description, characterisation, climax and details.'
+        student_summary: 'Well developed and mostly engaging, with some deliberate structural choices.'
+      - name: Level 4
+        min: 8
+        max: 10
+        descriptor: 'Content is focused on the task with some development. (W1) Structure is competently managed. (W2)'
+        descriptive: 'A selection of partially effective ideas, images and details.'
+        narrative: 'The plot is relevant and cohesive; begins to use features such as characterisation and setting of scene.'
+        student_summary: 'On task and competently organised, but only partly developed.'
+      - name: Level 3
+        min: 5
+        max: 7
+        descriptor: 'Content shows some focus on the task, is straightforward and briefly developed. (W1) Structure is mostly organised but may not always be effective. (W2)'
+        descriptive: 'A series of generally relevant details, with limited use of the features of descriptive writing.'
+        narrative: 'The plot is straightforward, with limited use of the features of narrative writing.'
+        student_summary: 'Straightforward and briefly developed; the structure does not always work.'
+      - name: Level 2
+        min: 3
+        max: 4
+        descriptor: 'Content lacks focus and is simple; ideas and events may be limited. (W1) Structure is partially organised. (W2)'
+        descriptive: 'Occasionally relevant with limited detail.'
+        narrative: 'Events are only partially linked and/or lack clarity.'
+        student_summary: 'Simple and unfocused, with only partial organisation.'
+      - name: Level 1
+        min: 1
+        max: 2
+        descriptor: 'Content is occasionally relevant or clear. (W1) Structure is limited and ineffective. (W2)'
+        descriptive: 'The description is unclear.'
+        narrative: 'The narrative lacks coherence.'
+        student_summary: 'Only occasionally relevant or clear; hard to follow.'
+      - name: Level 0
+        min: 0
+        max: 0
+        descriptor: 'No creditable content.'
+        student_summary: 'Nothing yet earns marks. Answer the task you were set.'
+  - id: style_accuracy
+    label: Style & Accuracy
+    table: Table E
+    max: 24
+    student_summary: Your vocabulary, sentences, engagement of the reader and accuracy (W3, W4, W5).
+    levels:
+      - name: Level 6
+        min: 21
+        max: 24
+        descriptor: 'Precise, well-chosen vocabulary and varied sentence structures, chosen for effect. (W3) Highly effective use of language to engage the reader. (W4) Spelling, punctuation and grammar almost always accurate. (W5)'
+        student_summary: 'Precise words and varied sentences chosen for effect, almost always accurate.'
+      - name: Level 5
+        min: 17
+        max: 20
+        descriptor: 'Mostly precise vocabulary and a range of sentence structures mostly used for effect. (W3) Effective use of language to engage the reader. (W4) Spelling, punctuation and grammar mostly accurate, with occasional minor errors. (W5)'
+        student_summary: 'Mostly precise and engaging, with only occasional minor errors.'
+      - name: Level 4
+        min: 13
+        max: 16
+        descriptor: 'Some precise vocabulary and a range of sentence structures sometimes used for effect. (W3) Sometimes effective use of language to engage the reader. (W4) Spelling, punctuation and grammar generally accurate though with some errors. (W5)'
+        student_summary: 'Sometimes precise and effective; generally accurate with some errors.'
+      - name: Level 3
+        min: 9
+        max: 12
+        descriptor: 'Simple vocabulary and a range of straightforward sentence structures. (W3) Some awareness of the reader. (W4) Frequent errors of spelling, punctuation and grammar, sometimes affecting communication. (W5)'
+        student_summary: 'Simple words and sentences; frequent errors sometimes blur meaning.'
+      - name: Level 2
+        min: 5
+        max: 8
+        descriptor: 'Limited and/or imprecise vocabulary and sentence structures. (W3) Limited awareness of the reader. (W4) Persistent errors of spelling, punctuation and grammar, occasionally impeding communication. (W5)'
+        student_summary: 'Limited or imprecise language; persistent errors.'
+      - name: Level 1
+        min: 1
+        max: 4
+        descriptor: 'Frequently imprecise vocabulary and sentence structures. (W3) Very limited awareness of the reader. (W4) Persistent errors in spelling, punctuation and grammar impede communication. (W5)'
+        student_summary: 'Frequently imprecise; errors get in the way of meaning.'
+      - name: Level 0
+        min: 0
+        max: 0
+        descriptor: 'No creditable content.'
+        student_summary: 'Nothing yet earns marks. Answer the task you were set.'
+student_overview: >-
+  Your composition is marked as a whole, not by ticking off techniques. The examiner gives two marks:
+  Content & Structure (out of 16) for your ideas, genre and shape, and Style & Accuracy (out of 24) for
+  your vocabulary, sentences and accuracy. For each, they choose the level that fits best, then a mark
+  within it.

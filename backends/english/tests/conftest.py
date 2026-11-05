@@ -13,9 +13,22 @@ from gcse_shared.config import load_settings
 BACKEND = Path(__file__).resolve().parents[1]
 
 GOOD_ANSWER = (
-    "The writer uses the metaphor 'a sea of grey faces' to suggest the crowd is overwhelming and "
-    "anonymous. The short sentence 'Nobody moved.' slows the pace and builds tension."
+    "The clock had stopped at twenty past four, its hands folded like a sleeper's. Dust lay in a grey "
+    "velvet over the glass. Nobody wound it now."
 )
+
+
+def make_grade(cs=11, sa=17, genre="descriptive", steps=("Vary the focus.", "Use a semicolon.")):
+    from english_grader.schemas import Annotation, GridScore, LevelDrop, LLMGrade
+    return LLMGrade(
+        genre=genre,
+        content_structure=GridScore(score=cs, justification="Well focused and developed."),
+        style_accuracy=GridScore(score=sa, justification="Mostly precise vocabulary."),
+        level_drop=LevelDrop(triggered=False, explanation="No critical errors."),
+        level_up_steps=list(steps),
+        annotations=[Annotation(quote="folded like a sleeper's", kind="strength", note="Striking image."),
+                     Annotation(quote="not in the answer", kind="improve", note="Dropped.")],
+    )
 
 
 class FakeMessages:
@@ -94,7 +107,7 @@ def client(anon_client: TestClient) -> TestClient:
 
 @pytest.fixture
 def submission() -> dict:
-    return {"board": "edexcel-igcse", "marks": 12, "question": "How does the writer create tension?",
+    return {"board": "cambridge-0990", "marks": 40, "question": "Describe an object that has been broken for a long time.",
             "answer": GOOD_ANSWER, "time_taken_seconds": 900}
 
 

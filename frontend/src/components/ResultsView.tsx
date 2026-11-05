@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { GradeResult } from "@/lib/api";
+import type { GradeResult, GridResult } from "@/lib/api";
 import { t } from "@/lib/i18n";
 import { formatClock, segmentByQuotes, toRoman } from "@/lib/text";
 
@@ -18,26 +18,50 @@ const BackIcon = () => (
   <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5" /><path d="M11 6l-6 6 6 6" /></svg>
 );
 
-function RatingDots({ rating }: { rating: GradeResult["objectives"][number]["rating"] }) {
-  const filled = rating === "strong" ? 3 : rating === "developing" ? 2 : 1;
-  const color = rating === "strong" ? "var(--ink)" : "var(--pen-deep)";
+/** "Level 5" -> 5 (for the Roman numeral on the track). */
+const levelNumber = (name: string) => Number(name.replace(/\D/g, "")) || 0;
+const range = (l: { min: number; max: number }) => (l.min === l.max ? String(l.min) : `${l.min}–${l.max}`);
+
+/** One marking grid: score, the examiner's justification, and a level track to explore. */
+function GridCard({ grid }: { grid: GridResult }) {
+  const [selected, setSelected] = useState(grid.level);
+  const levels = [...grid.levels].sort((a, b) => a.min - b.min); // low to high, left to right
+  const current = levels.find((l) => l.name === grid.level);
+  const sel = levels.find((l) => l.name === selected) ?? current ?? levels[0];
+  const headingId = `grid-${grid.id}`;
+
   return (
-    <span className="dots" style={{ color }}>
-      {[0, 1, 2].map((i) => <span key={i} aria-hidden="true" className={`dot${i < filled ? "" : " empty"}`} />)}
-      {t(`results.rating.${rating}`)}
-    </span>
+    <section aria-labelledby={headingId} className="sheet" style={{ flex: "1 1 420px", minWidth: 0, padding: "26px 28px", display: "flex", flexDirection: "column", gap: 14, boxShadow: "0 1px 0 var(--shadow-line)" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
+        <h3 id={headingId} style={{ margin: 0, fontSize: 16, letterSpacing: ".08em", textTransform: "uppercase" }}>{grid.label}</h3>
+        <span className="grid-score">{grid.score}<small> / {grid.max}</small></span>
+      </div>
+      <p className="muted" style={{ margin: 0, fontSize: 15 }}>{grid.student_summary}</p>
+      <p style={{ margin: 0 }}><strong>{grid.level}.</strong> {grid.justification}</p>
+      <div className="track compact" role="group" aria-label={t("results.levelsOf", { grid: grid.label })}>
+        {levels.map((l) => (
+          <button key={l.name} type="button" aria-pressed={sel.name === l.name} aria-label={t("results.levelMarks", { level: l.name, range: range(l) })}
+                  onClick={() => setSelected(l.name)}>
+            <span className={`node${l.name === grid.level ? " current" : current && l.min < current.min ? " reached" : ""}`}>{toRoman(levelNumber(l.name))}</span>
+            <span className="muted" style={{ fontSize: 12 }}>{range(l)}</span>
+          </button>
+        ))}
+      </div>
+      <div style={{ background: "var(--paper-2)", border: "1px dashed var(--rule-strong)", borderRadius: 3, padding: "14px 18px", display: "flex", flexDirection: "column", gap: 4 }} aria-live="polite">
+        <strong className="fell" style={{ fontWeight: 400, fontSize: 20 }}>
+          {t("results.levelMarks", { level: sel.name, range: range(sel) })}{sel.name === grid.level ? ` · ${t("results.you")}` : ""}
+        </strong>
+        <span>{sel.student_summary}</span>
+      </div>
+    </section>
   );
 }
 
 export function ResultsView({ result, answer, onBack, onIdeal, idealBusy, error }: Props) {
-  const [selected, setSelected] = useState(result.level);
-  const [done, setDone] = useState<boolean[]>(() => result.improvements.map(() => false));
-  const levels = result.mark_scheme.levels;
-  const sel = levels.find((l) => l.level === selected) ?? levels[0];
-  const range = (l: typeof sel) => (l.min === l.max ? String(l.min) : `${l.min}–${l.max}`);
+  const [done, setDone] = useState<boolean[]>(() => result.level_up_steps.map(() => false));
   const segments = segmentByQuotes(answer, result.annotations);
   const paragraphs = splitParagraphs(segments);
-  const aoLabel = (code: string) => result.mark_scheme.objectives.find((o) => o.code === code);
+  const drop = result.level_drop;
 
   return (
     <main id="main" className="shell page" style={{ gap: 40 }}>
@@ -48,12 +72,18 @@ export function ResultsView({ result, answer, onBack, onIdeal, idealBusy, error 
           <span className="label" style={{ letterSpacing: ".32em" }}>{t("results.stamp")}</span>
           <h1 id="mark-h" className="stamp-score">{result.awarded}<small> / {result.max}</small></h1>
           <span className="label" style={{ fontSize: 15, letterSpacing: ".28em", borderTop: "1.5px solid var(--pen)", paddingTop: 4 }}>
-            {t("results.level", { roman: toRoman(result.level) })}
+            {t(`results.genre.${result.genre}`)}
           </span>
         </div>
         <div style={{ flex: "1 1 420px", display: "flex", flexDirection: "column", gap: 16 }}>
-          <p className="fell" style={{ margin: 0, fontStyle: "italic", fontSize: "clamp(24px, 3vw, 34px)", lineHeight: 1.25 }}>“{result.level_summary}”</p>
-          <p style={{ margin: 0, fontSize: 17, color: "var(--text-2)" }}>{result.examiner_summary}</p>
+          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+            {result.grids.map((g) => (
+              <li key={g.id} className="fell" style={{ fontStyle: "italic", fontSize: "clamp(22px, 2.6vw, 30px)", lineHeight: 1.25 }}>
+                {t("results.gridLine", { label: g.label, score: g.score, max: g.max, level: g.level })}
+              </li>
+            ))}
+          </ul>
+          <p style={{ margin: 0, fontSize: 17, color: "var(--text-2)" }}>{result.overview}</p>
           <p className="label muted" style={{ margin: 0, fontWeight: 400, letterSpacing: ".16em", borderTop: "1px dashed var(--rule-strong)", paddingTop: 14 }}>
             {t("results.stats", {
               time: result.time_taken_seconds ? formatClock(result.time_taken_seconds) : t("results.noTime"),
@@ -63,23 +93,19 @@ export function ResultsView({ result, answer, onBack, onIdeal, idealBusy, error 
         </div>
       </section>
 
-      <section aria-labelledby="track-h" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-        <h2 id="track-h" className="h2">{t("results.trackTitle")}</h2>
+      <section aria-labelledby="drop-h" className={drop.triggered ? "alert" : "sheet"}
+               style={drop.triggered ? { display: "flex", flexDirection: "column", gap: 6 } : { padding: "18px 24px", display: "flex", flexDirection: "column", gap: 6, boxShadow: "0 1px 0 var(--shadow-line)" }}>
+        <h2 id="drop-h" className="label" style={{ margin: 0 }}>{t(drop.triggered ? "results.dropYes" : "results.dropNo")}</h2>
+        <p style={{ margin: 0 }}>{drop.explanation}</p>
+      </section>
+
+      <section aria-labelledby="grids-h" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <h2 id="grids-h" className="h2">{t("results.trackTitle")}</h2>
         <p style={{ margin: 0, maxWidth: 760, color: "var(--text-2)" }}>{t("results.trackIntro")}</p>
-        <div className="track">
-          {levels.map((l) => (
-            <button key={l.level} type="button" aria-pressed={selected === l.level} onClick={() => setSelected(l.level)}>
-              <span className={`node${l.level === result.level ? " current" : l.level < result.level ? " reached" : ""}`}>{toRoman(l.level)}</span>
-              <span className="muted" style={{ fontSize: 13, letterSpacing: ".1em" }}>{range(l)}</span>
-              {l.level === result.level && <span className="label" style={{ fontSize: 12, color: "var(--pen)" }}>{t("results.you")}</span>}
-            </button>
-          ))}
+        <div className="row">
+          {result.grids.map((g) => <GridCard key={g.id} grid={g} />)}
         </div>
-        <div style={{ background: "var(--paper-2)", border: "1px dashed var(--rule-strong)", borderRadius: 3, padding: "18px 22px", display: "flex", flexWrap: "wrap", gap: "6px 18px", alignItems: "baseline" }} aria-live="polite">
-          <strong className="fell" style={{ fontWeight: 400, fontSize: 22 }}>{t("results.levelMarks", { roman: toRoman(sel.level), range: range(sel) })}</strong>
-          <span style={{ flex: "1 1 360px" }}>{sel.student_summary}</span>
-        </div>
-        {result.mark_scheme.status === "draft" && <p className="muted" style={{ margin: 0, fontSize: 14 }}>{t("results.draftScheme")}</p>}
+        {result.status === "draft" && <p className="muted" style={{ margin: 0, fontSize: 14 }}>{t("results.draftScheme")}</p>}
       </section>
 
       <section aria-labelledby="marked-h" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
@@ -112,44 +138,22 @@ export function ResultsView({ result, answer, onBack, onIdeal, idealBusy, error 
         </div>
       </section>
 
-      <div className="row">
-        <section aria-labelledby="ao-h" style={{ flex: "1 1 420px", display: "flex", flexDirection: "column", gap: 16 }}>
-          <h2 id="ao-h" className="h2">{t("results.skillsTitle")}</h2>
-          {result.objectives.map((o) => (
-            <div key={o.code} className="sheet" style={{ padding: "22px 26px", display: "flex", flexDirection: "column", gap: 8, boxShadow: "0 1px 0 var(--shadow-line)" }}>
-              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                <strong style={{ letterSpacing: ".06em", textTransform: "uppercase" }}>{o.code} · {aoLabel(o.code)?.label}</strong>
-                <RatingDots rating={o.rating} />
-              </div>
-              <p className="muted" style={{ margin: 0, fontSize: 15 }}>{aoLabel(o.code)?.student_summary}</p>
-              <p style={{ margin: 0 }}>{o.comment}</p>
-            </div>
+      <section aria-labelledby="try-h" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <h2 id="try-h" className="h2">{t("results.tryTitle")}</h2>
+        <ol className="sheet" style={{ listStyle: "none", margin: 0, padding: "22px 26px", display: "flex", flexDirection: "column", gap: 4, boxShadow: "0 1px 0 var(--shadow-line)" }}>
+          {result.level_up_steps.map((text, i) => (
+            <li key={i}>
+              <label style={{ display: "flex", gap: 14, alignItems: "flex-start", minHeight: 44, padding: "8px 0", cursor: "pointer" }}>
+                <input type="checkbox" checked={done[i]} onChange={() => setDone((d) => d.map((v, k) => (k === i ? !v : v)))}
+                       style={{ marginTop: 5, width: 20, height: 20, accentColor: "var(--ink)" }} />
+                <span style={done[i] ? { textDecoration: "line-through", color: "var(--muted)" } : undefined}>
+                  <strong className="fell" style={{ fontWeight: 400, marginRight: 8 }}>{toRoman(i + 1)}.</strong>{text}
+                </span>
+              </label>
+            </li>
           ))}
-          {result.strengths.length > 0 && (
-            <div className="sheet" style={{ padding: "22px 26px", boxShadow: "0 1px 0 var(--shadow-line)" }}>
-              <h3 className="label" style={{ margin: "0 0 8px" }}>{t("results.wellTitle")}</h3>
-              <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 6 }}>
-                {result.strengths.map((s, i) => <li key={i}>{s}</li>)}
-              </ul>
-            </div>
-          )}
-        </section>
-
-        <section aria-labelledby="try-h" style={{ flex: "1 1 420px", display: "flex", flexDirection: "column", gap: 16 }}>
-          <h2 id="try-h" className="h2">{t("results.tryTitle")}</h2>
-          <ul className="sheet" style={{ listStyle: "none", margin: 0, padding: "22px 26px", display: "flex", flexDirection: "column", gap: 4, boxShadow: "0 1px 0 var(--shadow-line)" }}>
-            {result.improvements.map((text, i) => (
-              <li key={i}>
-                <label style={{ display: "flex", gap: 14, alignItems: "flex-start", minHeight: 44, padding: "8px 0", cursor: "pointer" }}>
-                  <input type="checkbox" checked={done[i]} onChange={() => setDone((d) => d.map((v, k) => (k === i ? !v : v)))}
-                         style={{ marginTop: 5, width: 20, height: 20, accentColor: "var(--ink)" }} />
-                  <span style={done[i] ? { textDecoration: "line-through", color: "var(--muted)" } : undefined}>{text}</span>
-                </label>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
+        </ol>
+      </section>
 
       {error && <p role="alert" className="alert" style={{ margin: 0 }}>{error}</p>}
 

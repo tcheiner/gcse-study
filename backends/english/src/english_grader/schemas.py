@@ -5,8 +5,8 @@ from pydantic import BaseModel, Field
 
 
 class SubmissionRequest(BaseModel):
-    board: str = Field(..., description="Exam board id, e.g. 'edexcel-igcse'")
-    marks: int = Field(..., description="Question tariff: 6, 9 or 12")
+    board: str = Field(..., description="Exam board id, e.g. 'cambridge-0990'")
+    marks: int = Field(..., description="Question tariff, e.g. 40 for a composition")
     question: str
     answer: str
     time_taken_seconds: int | None = Field(None, ge=0, description="How long the student spent writing")
@@ -14,10 +14,14 @@ class SubmissionRequest(BaseModel):
 
 # ---- What Claude returns (structured output) ----
 
-class ObjectiveRating(BaseModel):
-    code: str
-    rating: Literal["strong", "developing", "limited"]
-    comment: str
+class GridScore(BaseModel):
+    score: int
+    justification: str
+
+
+class LevelDrop(BaseModel):
+    triggered: bool
+    explanation: str
 
 
 class Annotation(BaseModel):
@@ -27,13 +31,12 @@ class Annotation(BaseModel):
 
 
 class LLMGrade(BaseModel):
-    level: int
-    awarded: int
-    objectives: list[ObjectiveRating]
-    strengths: list[str]
-    improvements: list[str]
+    genre: Literal["descriptive", "narrative"]
+    content_structure: GridScore
+    style_accuracy: GridScore
+    level_drop: LevelDrop
+    level_up_steps: list[str]
     annotations: list[Annotation]
-    examiner_summary: str
 
 
 class Change(BaseModel):
@@ -49,24 +52,23 @@ class LLMModelAnswer(BaseModel):
 
 # ---- What the API returns to the frontend ----
 
-class ObjectiveInfo(BaseModel):
-    code: str
-    label: str
-    student_summary: str
-
-
 class LevelInfo(BaseModel):
-    level: int
+    name: str
     min: int
     max: int
     student_summary: str
 
 
-class MarkSchemeExplainer(BaseModel):
-    overview: str
-    objectives: list[ObjectiveInfo]
+class GridResult(BaseModel):
+    id: str
+    label: str
+    student_summary: str
+    score: int
+    max: int
+    level: str
+    level_summary: str
+    justification: str
     levels: list[LevelInfo]
-    status: str
 
 
 class GradeResponse(BaseModel):
@@ -75,14 +77,13 @@ class GradeResponse(BaseModel):
     time_taken_seconds: int | None
     awarded: int
     max: int
-    level: int
-    level_summary: str
-    objectives: list[ObjectiveRating]
-    strengths: list[str]
-    improvements: list[str]
+    genre: str
+    grids: list[GridResult]
+    level_drop: LevelDrop
+    level_up_steps: list[str]
     annotations: list[Annotation]
-    examiner_summary: str
-    mark_scheme: MarkSchemeExplainer
+    overview: str
+    status: str
 
 
 class ModelAnswerResponse(BaseModel):

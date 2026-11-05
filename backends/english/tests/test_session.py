@@ -4,14 +4,12 @@ import anthropic
 import httpx
 import pytest
 
-from conftest import ORIGIN, TEST_KEK, TEST_KEY, run_job
-from english_grader.schemas import LLMGrade, ObjectiveRating
+from conftest import make_grade, ORIGIN, TEST_KEK, TEST_KEY, run_job
 from gcse_shared.key_session import KeySessionCodec, SessionExpired, SessionInvalid
 
 
 def grade_output():
-    return LLMGrade(level=3, awarded=8, objectives=[ObjectiveRating(code="AO1", rating="strong", comment="x")],
-                    strengths=["a"], improvements=["b"], annotations=[], examiner_summary="c")
+    return make_grade()
 
 
 # ---- codec ----

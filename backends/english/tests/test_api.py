@@ -3,18 +3,8 @@ import httpx
 import pytest
 
 from conftest import ORIGIN, run_job
-from english_grader.schemas import Annotation, Change, LLMGrade, LLMModelAnswer, ObjectiveRating
-
-
-def make_grade(level=3, awarded=8, codes=("AO1", "AO2")):
-    return LLMGrade(
-        level=level, awarded=awarded,
-        objectives=[ObjectiveRating(code=c, rating="developing", comment="ok") for c in codes],
-        strengths=["Good quote choice"], improvements=["Explore structure more"],
-        annotations=[Annotation(quote="a sea of grey faces", kind="strength", note="Well chosen."),
-                     Annotation(quote="not in the answer", kind="improve", note="Dropped.")],
-        examiner_summary="A clear answer.",
-    )
+from conftest import make_grade
+from english_grader.schemas import Change, LLMModelAnswer
 
 
 def graded(client, submission):
@@ -27,59 +17,74 @@ def test_health(client):
     assert client.get("/health").json() == {"status": "ok"}
 
 
-def test_boards_lists_edexcel_with_tariffs(client):
+def test_boards_lists_cambridge_composition(client):
     boards = client.get("/boards").json()
-    edexcel = next(b for b in boards if b["id"] == "edexcel-igcse")
-    assert edexcel["tariffs"] == [6, 9, 12]
-    assert edexcel["status"] == "draft"
+    assert [b["id"] for b in boards] == ["cambridge-0990"]
+    assert boards[0]["tariffs"] == [40] and boards[0]["status"] == "official"
 
 
 def test_grade_happy_path(client, fake, submission):
-    fake.next_output = make_grade()
+    fake.next_output = make_grade(cs=11, sa=17)
     body = graded(client, submission)
-    assert body["awarded"] == 8 and body["max"] == 12 and body["level"] == 3
-    assert body["word_count"] == len(submission["answer"].split())
-    assert body["time_taken_seconds"] == 900
-    assert [lv["level"] for lv in body["mark_scheme"]["levels"]] == [0, 1, 2, 3, 4]
-    assert body["level_summary"]
-    assert [a["quote"] for a in body["annotations"]] == ["a sea of grey faces"]  # non-verbatim quote dropped
+    assert body["awarded"] == 28 and body["max"] == 40 and body["genre"] == "descriptive"
+    cs, sa = body["grids"]
+    assert (cs["id"], cs["score"], cs["max"], cs["level"]) == ("content_structure", 11, 16, "Level 5")
+    assert (sa["id"], sa["score"], sa["max"], sa["level"]) == ("style_accuracy", 17, 24, "Level 5")
+    assert [lv["name"] for lv in cs["levels"]] == [f"Level {n}" for n in (6, 5, 4, 3, 2, 1, 0)]
+    assert cs["justification"] and cs["level_summary"]
+    assert body["level_drop"] == {"triggered": False, "explanation": "No critical errors."}
+    assert body["level_up_steps"] == ["Vary the focus.", "Use a semicolon."]
+    assert body["word_count"] == len(submission["answer"].split()) and body["time_taken_seconds"] == 900
+    assert [a["quote"] for a in body["annotations"]] == ["folded like a sleeper's"]  # non-verbatim quote dropped
 
 
-def test_grade_prompt_contains_scheme_and_wraps_student_text(client, fake, submission):
+def test_grade_prompt_contains_official_grids_and_wraps_student_text(client, fake, submission):
     fake.next_output = make_grade()
     graded(client, submission)
     call = fake.calls[0]
-    assert call["model"] == "claude-opus-5-5"
-    assert call["fallbacks"] == "default"
-    assert "Level 4 (10–12 marks)" in call["system"]
+    assert call["model"] == "claude-opus-5-5" and call["fallbacks"] == "default"
+    system = call["system"]
+    assert "Cambridge CIE IGCSE First Language English (0990) Examiner" in system
+    assert "Do not count literary devices or use a point-by-point checklist" in system
+    assert "Level 6 (14–16 marks)" in system and "Level 3 (9–12 marks)" in system
+    assert "Narrative: Crafts a well-defined and strongly developed plot" in system
     assert "<student_response>" in call["messages"][0]["content"]
     assert submission["answer"] in call["messages"][0]["content"]
 
 
-def test_grade_mark_out_of_range_is_clamped_and_level_derived(client, fake, submission):
-    fake.next_output = make_grade(level=2, awarded=15)
+@pytest.mark.parametrize("cs,sa,expected", [
+    (20, 30, (16, 24, 40, "Level 6", "Level 6")),
+    (-3, 0, (0, 0, 0, "Level 0", "Level 0")),
+    (7, 9, (7, 9, 16, "Level 3", "Level 3")),
+    (8, 12, (8, 12, 20, "Level 4", "Level 3")),
+])
+def test_scores_clamped_levels_derived_total_summed(client, fake, submission, cs, sa, expected):
+    fake.next_output = make_grade(cs=cs, sa=sa)
     body = graded(client, submission)
-    assert body["awarded"] == 12 and body["level"] == 4
+    c, s = body["grids"]
+    assert (c["score"], s["score"], body["awarded"], c["level"], s["level"]) == expected
 
 
-def test_grade_level_follows_mark_when_inconsistent(client, fake, submission):
-    fake.next_output = make_grade(level=4, awarded=5)
+def test_level_up_steps_trimmed_to_two(client, fake, submission):
+    fake.next_output = make_grade(steps=("One.", " ", "Two.", "Three."))
+    assert graded(client, submission)["level_up_steps"] == ["One.", "Two."]
+
+
+def test_level_drop_reported(client, fake, submission):
+    out = make_grade(genre="narrative")
+    out.level_drop.triggered, out.level_drop.explanation = True, "Ends with a dream sequence."
+    fake.next_output = out
     body = graded(client, submission)
-    assert body["awarded"] == 5 and body["level"] == 2
-
-
-def test_grade_drops_unknown_objectives(client, fake, submission):
-    fake.next_output = make_grade(codes=("AO2", "AO9", "AO1"))
-    body = graded(client, submission)
-    assert [o["code"] for o in body["objectives"]] == ["AO1", "AO2"]
+    assert body["genre"] == "narrative" and body["level_drop"]["triggered"] is True
 
 
 @pytest.mark.parametrize("patch,code", [
     ({"question": "  "}, "question_required"),
     ({"answer": "too short"}, "answer_too_short"),
     ({"answer": "word " * 4000}, "answer_too_long"),
-    ({"marks": 7}, "scheme_not_found"),
+    ({"marks": 12}, "scheme_not_found"),
     ({"board": "../../etc"}, "scheme_not_found"),
+    ({"board": "edexcel-igcse"}, "scheme_not_found"),
 ])
 def test_grade_validation_errors_are_immediate(client, fake, submission, patch, code):
     r = client.post("/grade", json={**submission, **patch}, headers=ORIGIN)
@@ -126,11 +131,12 @@ def test_model_answer(client, fake, submission):
         Change(what="Invented", why="x", excerpt="not there")])
     status = run_job(client, "/model-answer", submission)
     assert status["status"] == "done"
-    assert status["result"] == {"board": "edexcel-igcse", "max": 12, "rewritten": "Better essay",
+    assert status["result"] == {"board": "cambridge-0990", "max": 40, "rewritten": "Better essay",
                                 "changes": [{"what": "Added structure", "why": "AO2", "excerpt": "Better"},
                                             {"what": "Invented", "why": "x", "excerpt": ""}]}
     system = fake.calls[0]["system"]
-    assert "full marks (12/12)" in system and "Do not invent quotations" in system
+    assert "full marks (40/40)" in system and "Keep the student's chosen genre" in system
+    assert "Style & Accuracy (21–24 of 24)" in system
 
 
 def test_logs_are_written(client, fake, submission, tmp_path):

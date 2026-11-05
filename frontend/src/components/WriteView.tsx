@@ -24,7 +24,7 @@ interface Props {
 export function WriteView(p: Props) {
   const { draft } = p;
   const board = p.boards.find((b) => b.id === draft.board);
-  const tariffs = board?.tariffs ?? [6, 9, 12];
+  const tariffs = board?.tariffs ?? [draft.marks];
   const words = wordCount(draft.answer);
   const digits = String(Math.min(words, 9999)).padStart(4, "0").split("");
 
@@ -55,12 +55,16 @@ export function WriteView(p: Props) {
 
           <div className="field">
             <span id="marks-label" className="label">{t("write.marks")}</span>
-            <div role="radiogroup" aria-labelledby="marks-label" style={{ display: "flex", gap: 14 }}>
-              {tariffs.map((m) => (
-                <button key={m} type="button" role="radio" className="key" aria-checked={draft.marks === m}
-                        aria-label={t("write.marksAria", { marks: m })} onClick={() => p.onChange({ marks: m })}>{m}</button>
-              ))}
-            </div>
+            {tariffs.length === 1 ? (
+              <p className="fell" style={{ margin: 0, fontSize: 20 }}>{t("write.fixedMarks", { marks: tariffs[0] })}</p>
+            ) : (
+              <div role="radiogroup" aria-labelledby="marks-label" style={{ display: "flex", gap: 14 }}>
+                {tariffs.map((m) => (
+                  <button key={m} type="button" role="radio" className="key" aria-checked={draft.marks === m}
+                          aria-label={t("write.marksAria", { marks: m })} onClick={() => p.onChange({ marks: m })}>{m}</button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="field">

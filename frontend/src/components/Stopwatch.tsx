@@ -7,7 +7,9 @@ const TICKS = Array.from({ length: 12 }, (_, i) => {
   const a = (i * 30 * Math.PI) / 180;
   const long = i % 3 === 0;
   const r2 = long ? 27 : 30;
-  return { x1: 40 + 33 * Math.sin(a), y1: 40 - 33 * Math.cos(a), x2: 40 + r2 * Math.sin(a), y2: 40 - r2 * Math.cos(a), w: long ? 2 : 1 };
+  // Rounded so server and browser render identical SVG (float trig can differ in the last digit).
+  const r = (n: number) => Math.round(n * 1000) / 1000;
+  return { x1: r(40 + 33 * Math.sin(a)), y1: r(40 - 33 * Math.cos(a)), x2: r(40 + r2 * Math.sin(a)), y2: r(40 - r2 * Math.cos(a)), w: long ? 2 : 1 };
 });
 const CIRC = 2 * Math.PI * 22;
 

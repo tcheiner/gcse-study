@@ -154,6 +154,15 @@ button { font-family: inherit; }
 .track .node.reached { background: var(--paper); color: var(--ink); border: 2px solid var(--ink); }
 .track .node.current { background: var(--ink); color: var(--paper); border: 3px solid var(--ink-deep); }
 .track button[aria-pressed="true"] .node { box-shadow: 0 0 0 5px var(--ink-soft); }
+.track.compact { gap: 4px; }
+.track.compact::before { left: 20px; right: 20px; top: 28px; }
+.track.compact .node { width: 40px; height: 40px; font-size: 17px; }
+@media (max-width: 480px) {
+  .track.compact::before { left: 16px; right: 16px; top: 24px; }
+  .track.compact .node { width: 32px; height: 32px; font-size: 14px; }
+}
+.grid-score { font-family: var(--font-fell); font-size: 34px; line-height: 1; white-space: nowrap; }
+.grid-score small { font-size: 18px; color: var(--muted); }
 .cta-band { background: var(--ink); color: var(--paper); border-radius: 3px; padding: 40px 44px; display: flex; flex-wrap: wrap; align-items: center; gap: 32px; box-shadow: 0 16px 34px -18px rgba(90, 56, 32, .55); }
 
 /* ---------- key dialog ---------- */

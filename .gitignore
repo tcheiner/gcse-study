@@ -32,3 +32,9 @@ frontend/blob-report/
 
 # Netlify local build output
 .netlify/
+
+# Official mark scheme PDFs (exam board copyright; kept locally only)
+rules/
+
+# macOS
+.DS_Store

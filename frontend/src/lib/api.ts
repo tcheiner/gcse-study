@@ -2,20 +2,20 @@
 // so the HttpOnly key cookie is sent automatically and never touched by JS.
 import { appConfig } from "@/config/app";
 
-export type Rating = "strong" | "developing" | "limited";
-
 export interface BoardInfo { id: string; name: string; specification: string; paper: number; tariffs: number[]; status: string }
 export interface SessionStatus { active: boolean; idle_expires_at: number | null; absolute_expires_at: number | null }
 export interface Submission { board: string; marks: number; question: string; answer: string; time_taken_seconds: number | null }
 export interface Annotation { quote: string; kind: "strength" | "improve"; note: string }
-export interface Objective { code: string; rating: Rating; comment: string }
-export interface LevelInfo { level: number; min: number; max: number; student_summary: string }
+export interface LevelInfo { name: string; min: number; max: number; student_summary: string }
+export interface GridResult {
+  id: string; label: string; student_summary: string; score: number; max: number;
+  level: string; level_summary: string; justification: string; levels: LevelInfo[];
+}
 export interface GradeResult {
   board: string; word_count: number; time_taken_seconds: number | null;
-  awarded: number; max: number; level: number; level_summary: string;
-  objectives: Objective[]; strengths: string[]; improvements: string[]; annotations: Annotation[];
-  examiner_summary: string;
-  mark_scheme: { overview: string; objectives: { code: string; label: string; student_summary: string }[]; levels: LevelInfo[]; status: string };
+  awarded: number; max: number; genre: "descriptive" | "narrative"; grids: GridResult[];
+  level_drop: { triggered: boolean; explanation: string };
+  level_up_steps: string[]; annotations: Annotation[]; overview: string; status: string;
 }
 export interface Change { what: string; why: string; excerpt: string }
 export interface ModelAnswer { board: string; max: number; rewritten: string; changes: Change[] }

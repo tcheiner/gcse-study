@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { ANSWER, fillAnswer, json, mockBackend } from "./fixtures";
+import { ANSWER, fillAnswer, json, mockBackend, QUESTION } from "./fixtures";
 
 test("happy path: add key, get marked, see full-marks version", async ({ page }) => {
   const seen = await mockBackend(page);
@@ -9,7 +9,7 @@ test("happy path: add key, get marked, see full-marks version", async ({ page })
 
   await fillAnswer(page);
   await expect(page.getByText(`${ANSWER.trim().split(/\s+/).length} words`)).toBeAttached();
-  await page.getByRole("radio", { name: "9 marks" }).click();
+  await expect(page.getByText("Composition · 40 marks")).toBeVisible();
   await page.getByRole("button", { name: /submit for marking/i }).click();
 
   // No key yet: the dialog opens, then marking continues automatically.
@@ -18,32 +18,39 @@ test("happy path: add key, get marked, see full-marks version", async ({ page })
   await dialog.getByLabel("Paste your key").fill("sk-ant-test-key");
   await dialog.getByRole("button", { name: /check & seal/i }).click();
 
-  await expect(page.getByRole("heading", { name: /8 \/ 12/ })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("heading", { name: /22 \/ 40/ })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText(/Key active · forgets in (19|20) min/)).toBeVisible();
   const grade = seen.find((r) => r.path === "/grade")!;
-  expect(grade.body).toMatchObject({ board: "edexcel-igcse", marks: 9, question: "How does the writer create tension?" });
+  expect(grade.body).toMatchObject({ board: "cambridge-0990", marks: 40, question: QUESTION });
 
   // The key field is cleared, and the key never appears in any request except /session/key.
   await expect(dialog).toBeHidden();
   expect(seen.filter((r) => JSON.stringify(r.body).includes("sk-ant-test-key")).map((r) => r.path)).toEqual(["/session/key"]);
 
-  // Margin annotations highlight the student's own words.
-  await expect(page.locator(".hl-strength", { hasText: "a sea of grey faces" })).toBeVisible();
-  await expect(page.locator(".hl-improve", { hasText: "man at the front" })).toBeVisible();
-  await expect(page.getByText("This is a structural shift: say why.")).toBeVisible();
+  // Genre, both grids, the level drop and the two steps.
+  await expect(page.getByText("Descriptive", { exact: true })).toBeVisible();
+  await expect(page.getByText("Content & Structure: 9 / 16 · Level 4")).toBeVisible();
+  await expect(page.getByText("Style & Accuracy: 13 / 24 · Level 4")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Level drop: a critical error" })).toBeVisible();
+  await expect(page.getByText("Use a semicolon to balance past and present.")).toBeVisible();
 
-  // Level track: select another level to read it.
-  await page.getByRole("button", { name: /IV/ }).click();
-  await expect(page.getByText("Perceptive and critical throughout.")).toBeVisible();
+  // Margin annotations highlight the student's own words.
+  await expect(page.locator(".hl-strength", { hasText: "folded like a sleeper's" })).toBeVisible();
+  await expect(page.locator(".hl-improve", { hasText: "grandad winding it" })).toBeVisible();
+  await expect(page.getByText("This drifts into narrative: keep describing.")).toBeVisible();
+
+  // Each grid has its own level track: select another level to read it.
+  await page.getByRole("group", { name: "Style & Accuracy levels" }).getByRole("button", { name: "Level 6 · 21–24 marks" }).click();
+  await expect(page.getByText("Precise words, almost always accurate.")).toBeVisible();
 
   await page.getByRole("button", { name: /show full-marks version/i }).click();
-  await expect(page.locator(".hl-change", { hasText: "Structurally, the focus narrows" })).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator(".hl-change", { hasText: "the pendulum hangs mid-swing" })).toBeVisible({ timeout: 15_000 });
   await page.getByRole("radio", { name: "Side by side" }).click();
-  await expect(page.getByText("Your original · 8 / 12")).toBeVisible();
+  await expect(page.getByText("Your original · 22 / 40")).toBeVisible();
 
   await page.getByRole("button", { name: /back to my feedback/i }).click();
   await page.getByRole("button", { name: /back to my answer/i }).click();
-  await expect(page.getByRole("textbox", { name: "Your answer", exact: true })).toHaveValue(/sea of grey faces/);
+  await expect(page.getByRole("textbox", { name: "Your answer", exact: true })).toHaveValue(/folded like a sleeper's/);
 });
 
 test("a rejected key shows the reason and nothing is marked", async ({ page }) => {

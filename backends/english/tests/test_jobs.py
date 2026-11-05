@@ -2,14 +2,12 @@ import asyncio
 
 import pytest
 
-from conftest import ORIGIN, TEST_KEY, run_job
-from english_grader.schemas import LLMGrade, ObjectiveRating
+from conftest import make_grade, ORIGIN, TEST_KEY, run_job
 from gcse_shared.jobs import JobLimit, JobStore
 
 
 def grade_output():
-    return LLMGrade(level=3, awarded=8, objectives=[ObjectiveRating(code="AO1", rating="strong", comment="x")],
-                    strengths=["a"], improvements=["b"], annotations=[], examiner_summary="c")
+    return make_grade()
 
 
 def test_start_returns_immediately_with_job_id(client, fake, submission):

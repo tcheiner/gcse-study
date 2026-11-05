@@ -1,48 +1,60 @@
 import type { Page, Route } from "@playwright/test";
 
+export const QUESTION = "Describe an object that has been broken for a long time.";
 export const ANSWER =
-  "The writer uses the metaphor a sea of grey faces to suggest the crowd is overwhelming.\n\n" +
-  "The short sentence Nobody moved. slows the pace. Then the writer talks about the man at the front.";
+  "The clock on the landing stopped years ago, its hands folded like a sleeper's.\n\n" +
+  "Dust lies over the glass. Then I remembered my grandad winding it every Sunday.";
 
 export const GRADE = {
-  board: "edexcel-igcse", word_count: 33, time_taken_seconds: null, awarded: 8, max: 12, level: 3,
-  level_summary: "Clear and relevant. Add detail on structure and explore layers of meaning.",
-  objectives: [
-    { code: "AO1", rating: "strong", comment: "You select relevant details." },
-    { code: "AO2", rating: "developing", comment: "Structure is only mentioned once." },
+  board: "cambridge-0990", word_count: 28, time_taken_seconds: null, awarded: 22, max: 40, genre: "descriptive",
+  grids: [
+    {
+      id: "content_structure", label: "Content & Structure", student_summary: "Ideas, genre and shape (W1, W2).",
+      score: 9, max: 16, level: "Level 4", level_summary: "On task but only partly developed.",
+      justification: "The focus on the clock is clear but the picture is only partly developed.",
+      levels: [
+      { name: "Level 6", min: 14, max: 16, student_summary: "Complex, engaging and tightly focused." },
+      { name: "Level 5", min: 11, max: 13, student_summary: "Well developed and mostly engaging." },
+      { name: "Level 4", min: 8, max: 10, student_summary: "On task but only partly developed." },
+      { name: "Level 3", min: 5, max: 7, student_summary: "Straightforward and briefly developed." },
+      { name: "Level 2", min: 3, max: 4, student_summary: "Simple and unfocused." },
+      { name: "Level 1", min: 1, max: 2, student_summary: "Hard to follow." },
+      { name: "Level 0", min: 0, max: 0, student_summary: "Nothing yet earns marks." },
+      ],
+    },
+    {
+      id: "style_accuracy", label: "Style & Accuracy", student_summary: "Vocabulary, sentences and accuracy (W3–W5).",
+      score: 13, max: 24, level: "Level 4", level_summary: "Sometimes precise and effective.",
+      justification: "Some precise vocabulary; sentence structures are rarely varied for effect.",
+      levels: [
+      { name: "Level 6", min: 21, max: 24, student_summary: "Precise words, almost always accurate." },
+      { name: "Level 5", min: 17, max: 20, student_summary: "Mostly precise and engaging." },
+      { name: "Level 4", min: 13, max: 16, student_summary: "Sometimes precise and effective." },
+      { name: "Level 3", min: 9, max: 12, student_summary: "Simple words and sentences." },
+      { name: "Level 2", min: 5, max: 8, student_summary: "Limited or imprecise language." },
+      { name: "Level 1", min: 1, max: 4, student_summary: "Frequently imprecise." },
+      { name: "Level 0", min: 0, max: 0, student_summary: "Nothing yet earns marks." },
+      ],
+    },
   ],
-  strengths: ["Well-chosen quotation."],
-  improvements: ["Explain why the focus narrows.", "Offer a second reading of grey."],
+  level_drop: { triggered: true, explanation: "The memory of grandad starts to turn the description into a story." },
+  level_up_steps: ["Shift focus from the clock face to the stilled pendulum.", "Use a semicolon to balance past and present."],
   annotations: [
-    { quote: "a sea of grey faces", kind: "strength", note: "Well chosen, and you name the effect." },
-    { quote: "Then the writer talks about the man at the front.", kind: "improve", note: "This is a structural shift: say why." },
+    { quote: "its hands folded like a sleeper's", kind: "strength", note: "A striking, quiet image." },
+    { quote: "Then I remembered my grandad winding it every Sunday.", kind: "improve", note: "This drifts into narrative: keep describing." },
   ],
-  examiner_summary: "You pick strong quotations and explain their effect clearly.",
-  mark_scheme: {
-    overview: "Marked by levels.", status: "draft",
-    objectives: [
-      { code: "AO1", label: "Read and understand", student_summary: "Show you understand the text." },
-      { code: "AO2", label: "Analyse language and structure", student_summary: "Explain HOW the writer creates effects." },
-    ],
-    levels: [
-      { level: 0, min: 0, max: 0, student_summary: "Nothing yet earns marks." },
-      { level: 1, min: 1, max: 3, student_summary: "You mostly describe what happens." },
-      { level: 2, min: 4, max: 6, student_summary: "You spot techniques." },
-      { level: 3, min: 7, max: 9, student_summary: "Clear and relevant." },
-      { level: 4, min: 10, max: 12, student_summary: "Perceptive and critical throughout." },
-    ],
-  },
+  overview: "Your composition is marked as a whole.", status: "official",
 };
 
 export const IDEAL = {
-  board: "edexcel-igcse", max: 12,
-  rewritten: "The writer builds tension through the metaphor of a sea of grey faces.\n\nStructurally, the focus narrows to one man, mirroring the narrator's fear.",
+  board: "cambridge-0990", max: 40,
+  rewritten: "The clock on the landing has not spoken for years; its hands are folded like a sleeper's.\n\nBeneath the glass, the pendulum hangs mid-swing, a held breath.",
   changes: [
-    { what: "Structure, not just language", why: "The top level needs both.", excerpt: "Structurally, the focus narrows to one man" },
+    { what: "A shift of focus", why: "Level 6 descriptions vary their focus.", excerpt: "the pendulum hangs mid-swing, a held breath" },
   ],
 };
 
-const BOARDS = [{ id: "edexcel-igcse", name: "Pearson Edexcel International GCSE", specification: "English Language A (4EA1)", paper: 2, tariffs: [6, 9, 12], status: "draft" }];
+const BOARDS = [{ id: "cambridge-0990", name: "Cambridge IGCSE First Language English", specification: "First Language English (0990)", paper: 2, tariffs: [40], status: "official" }];
 const INACTIVE = { active: false, idle_expires_at: null, absolute_expires_at: null };
 const active = () => {
   const now = Date.now() / 1000;
@@ -103,7 +115,7 @@ export async function mockBackend(page: Page, opts: MockOptions = {}) {
 }
 
 export async function fillAnswer(page: Page) {
-  await page.getByLabel("Type or paste the question").fill("How does the writer create tension?");
+  await page.getByLabel("Type or paste the question").fill(QUESTION);
   await page.getByRole("textbox", { name: "Your answer", exact: true }).fill(ANSWER);
 }
 
