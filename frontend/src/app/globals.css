@@ -86,14 +86,10 @@ button { font-family: inherit; }
   background-attachment: local; border: 0; resize: vertical;
 }
 .essay {
-  width: 100%; font-family: var(--font-type); font-size: 18px; line-height: 36px; padding: 6px 36px 36px 92px; min-height: 600px;
-  color: var(--text); background-color: var(--paper);
-  background-image:
-    linear-gradient(to right, transparent 70px, var(--margin) 70px, var(--margin) 71px, transparent 71px, transparent 74px, var(--margin) 74px, var(--margin) 75px, transparent 75px),
-    repeating-linear-gradient(to bottom, transparent 0, transparent 41px, var(--rule) 41px, var(--rule) 42px);
-  background-attachment: local; border: 0; border-radius: 0 0 3px 3px; resize: vertical; display: block;
+  width: 100%; font-family: var(--font-type); font-size: 18px; line-height: 36px; padding: 24px 40px 36px; min-height: 600px;
+  color: var(--text); background: var(--paper); border: 0; border-radius: 0 0 3px 3px; resize: vertical; display: block;
 }
-@media (max-width: 640px) { .essay { padding-left: 28px; background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 41px, var(--rule) 41px, var(--rule) 42px); } }
+@media (max-width: 640px) { .essay { padding: 20px 20px 28px; } }
 .sheet-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 28px; border-bottom: 1px dashed var(--rule-strong); }
 
 /* ---------- controls ---------- */
