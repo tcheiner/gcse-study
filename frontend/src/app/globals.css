@@ -22,7 +22,6 @@
   --lift: 0 1px 0 var(--shadow-line), 0 16px 34px -18px rgba(90, 60, 30, .32);
   --font-type: var(--font-courier), "Courier New", monospace;
   --font-fell: var(--font-fell-english), Georgia, serif;
-  --font-black: var(--font-fraktur), serif;
 }
 
 * { box-sizing: border-box; }
@@ -64,8 +63,8 @@ button { font-family: inherit; }
 .header { border-bottom: 1px solid var(--rule-strong); }
 .header-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 24px; max-width: 1180px; margin: 0 auto; }
 .brand { display: flex; align-items: baseline; gap: 22px; }
-.wordmark { font-family: var(--font-black); font-size: 34px; line-height: 1; color: var(--text); text-decoration: none; }
-.subject-tag { font-size: 14px; font-weight: 700; letter-spacing: .22em; color: var(--ink); border-bottom: 2px solid var(--ink); padding-bottom: 2px; text-transform: uppercase; }
+.wordmark { font-family: var(--font-fell); font-size: 34px; line-height: 1; color: var(--text); text-decoration: none; }
+.subject-tag { font-family: var(--font-fell); font-size: 24px; font-style: italic; line-height: 1; color: var(--ink); border-bottom: 2px solid var(--ink); padding-bottom: 2px; }
 .steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 14px; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .steps .on { color: var(--text); font-weight: 700; }
 .steps .dash { color: #A89B80; }
