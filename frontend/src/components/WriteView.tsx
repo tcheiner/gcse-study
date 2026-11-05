@@ -58,7 +58,7 @@ export function WriteView(p: Props) {
         <section aria-labelledby="card-h" className="index-card" style={{ flex: "1 1 340px", minWidth: 0 }}>
           <div className="between" style={{ alignItems: "center" }}>
             <h2 id="card-h" className="h2i" style={{ height: 34 }}>{t("write.cardTitle")}</h2>
-            <button type="button" className="btn-raised" onClick={fillSample}>{t("write.sample")}</button>
+            <button type="button" className="btn-raised btn-clear" onClick={fillSample}>{t("write.sample")}</button>
           </div>
 
           <div className="field">
