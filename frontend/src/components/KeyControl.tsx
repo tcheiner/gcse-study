@@ -5,6 +5,7 @@ import { appConfig } from "@/config/app";
 import { ApiError } from "@/lib/api";
 import { t } from "@/lib/i18n";
 import { useKey } from "./KeyContext";
+import { KeyHelp } from "./KeyHelp";
 
 export function KeyControl() {
   const { status, minutesLeft, dialogOpen, openDialog, closeDialog, add, forget } = useKey();
@@ -51,7 +52,10 @@ export function KeyControl() {
       <dialog ref={dialog} className="key-dialog" onClose={closeDialog} aria-labelledby="key-title">
         <form onSubmit={submit} className="sheet" style={{ padding: "32px 34px", display: "flex", flexDirection: "column", gap: 18 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
-            <h2 id="key-title" className="h2i">{t("key.title")}</h2>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+              <h2 id="key-title" className="h2i">{t("key.title")}</h2>
+              <KeyHelp />
+            </span>
             <button type="button" className="linkish" onClick={closeDialog}>{t("key.close")}</button>
           </div>
           <p style={{ margin: 0, color: "var(--text-2)" }}>{t("key.explain", { idle: appConfig.keySession.idleMinutes, absolute: appConfig.keySession.absoluteMinutes })}</p>

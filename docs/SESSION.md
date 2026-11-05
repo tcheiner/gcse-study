@@ -31,7 +31,8 @@ frontend/
   src/app/english/                     layout (theme + KeyProvider + Header);
                                        [board]/[paper]/[section]/page.tsx (EnglishStudio, params in Suspense)
   src/components/                      EnglishStudio (flow), WriteView, ResultsView, ModelAnswerView,
-                                       KeyContext/KeyControl (key dialog + countdown), Stopwatch, Header
+                                       KeyContext/KeyControl (key dialog + countdown), KeyHelp ("?" popover:
+                                       how to get a key; steps in config keyHelpSteps), Stopwatch, Header
   src/config/app.ts, subjects.ts       app settings; per-subject ink colours (CSS variables)
   src/lib/                             api.ts (typed client), i18n.ts, text.ts, clock.ts (useNow store)
   locales/en.json                      ALL user-facing text
@@ -69,6 +70,8 @@ logs/                        DDMMYYYY_HH-MM-SS-MS.log, new per start, rotates at
 - Key sessions (`gcse_shared/key_session.py`): AES-256-GCM with KEY_ENCRYPTION_KEY; cookie is HttpOnly,
   Secure, SameSite=strict, browser-session only; 20 min idle / 120 min absolute (settings.yaml); Origin checked.
   Codec is deliberately not @logged (its return values hold the plaintext key).
+- Key help: native `popover="auto"` + `popoverTarget` (opens above the modal key dialog, Esc/outside click
+  closes it only). Step ids + Console URLs in `appConfig.keyHelpSteps`, text in `key.help.*`.
 - `@logged` decorator: ENTER/EXIT/ERROR with duration; redacts api_key/password/token; truncates long strings.
 
 ## Decisions

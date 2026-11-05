@@ -21,4 +21,13 @@ export const appConfig = {
   copyrightYear: 2026,
   /** Where students create a Claude key. */
   claudeConsoleUrl: "https://platform.claude.com/settings/keys",
+  /** Steps in the "How do I get a key?" popover; text lives in locales under key.help.steps / key.help.links. */
+  keyHelpSteps: [
+    { id: "signup", url: "https://platform.claude.com/" },
+    { id: "credit", url: "https://platform.claude.com/settings/billing" },
+    { id: "limit", url: "https://platform.claude.com/settings/limits" },
+    { id: "create", url: "https://platform.claude.com/settings/keys" },
+    { id: "copy" },
+    { id: "paste" },
+  ],
 } as const;

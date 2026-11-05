@@ -34,7 +34,29 @@
     "save": "Check & seal",
     "saving": "Checking…",
     "console": "Create a key in the Claude Console",
-    "needed": "Add your Claude key to have this marked."
+    "needed": "Add your Claude key to have this marked.",
+    "help": {
+      "open": "How do I get a key?",
+      "title": "Getting a Claude API key",
+      "intro": "It takes about five minutes. You only need to do this once.",
+      "age": "You must be 18 or over to open a Claude Console account, so ask a parent, guardian or teacher to set it up with you.",
+      "steps": {
+        "signup": "Sign up or log in to the Claude Console with an email address.",
+        "credit": "Under Billing, add a little prepaid credit. Each marking costs a few pence.",
+        "limit": "Under Limits, set a low monthly spend limit so you can never spend more than you meant to.",
+        "create": "Under API keys, choose Create key and give it a name such as \"GCSE study\".",
+        "copy": "Copy the key straight away. It starts with sk-ant- and is shown only once.",
+        "paste": "Paste it into the box on this page and press Check & seal."
+      },
+      "links": {
+        "signup": "Open the Console",
+        "credit": "Billing",
+        "limit": "Limits",
+        "create": "API keys"
+      },
+      "safety": "Treat the key like a password: never share it or post it. If it leaks, delete it in the Console and make a new one.",
+      "close": "Got it"
+    }
   },
   "write": {
     "kicker": "Paper 2 · Section B · Composition",

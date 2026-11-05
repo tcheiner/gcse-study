@@ -105,6 +105,30 @@ test("forget my key clears it", async ({ page }) => {
   expect(seen.some((r) => r.method === "DELETE" && r.path === "/session/key")).toBe(true);
 });
 
+test("? button pops up how to get a Claude key, then closes", async ({ page }) => {
+  await mockBackend(page);
+  await page.goto(PAPER);
+  await page.getByRole("button", { name: "Add key" }).click();
+  const dialog = page.getByRole("dialog", { name: "Your Claude API key" });
+  const help = page.getByRole("dialog", { name: "Getting a Claude API key" });
+  await expect(help).toBeHidden();
+
+  await dialog.getByRole("button", { name: "How do I get a key?" }).click();
+  await expect(help).toBeVisible();
+  await expect(help.getByRole("listitem")).toHaveCount(6);
+  await expect(help.getByText(/18 or over/)).toBeVisible();
+  await expect(help.getByRole("link", { name: "API keys" })).toHaveAttribute("href", "https://platform.claude.com/settings/keys");
+
+  await help.getByRole("button", { name: "Got it" }).click();
+  await expect(help).toBeHidden();
+  await expect(dialog).toBeVisible(); // the key dialog stays open underneath
+
+  await dialog.getByRole("button", { name: "How do I get a key?" }).click();
+  await page.keyboard.press("Escape");
+  await expect(help).toBeHidden();
+  await expect(dialog.getByLabel("Paste your key")).toBeVisible();
+});
+
 test("backend down shows a friendly network error", async ({ page }) => {
   await mockBackend(page, { down: true });
   await page.goto(PAPER);
