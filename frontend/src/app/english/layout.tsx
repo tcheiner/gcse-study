@@ -1,4 +1,3 @@
-import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { KeyProvider } from "@/components/KeyContext";
 import { themeStyle } from "@/config/subjects";
@@ -11,7 +10,6 @@ export default function EnglishLayout({ children }: { children: React.ReactNode 
       <KeyProvider>
         <Header subject="english" />
         {children}
-        <Footer />
       </KeyProvider>
     </div>
   );

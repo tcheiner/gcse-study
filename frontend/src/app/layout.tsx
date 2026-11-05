@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Courier_Prime, IM_Fell_English } from "next/font/google";
+import { Footer } from "@/components/Footer";
 import { t } from "@/lib/i18n";
 import "./globals.css";
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${courier.variable} ${fell.variable}`}>
-      <body>{children}</body>
+      <body>{children}<Footer /></body>
     </html>
   );
 }

@@ -162,5 +162,23 @@
   },
   "footer": {
     "copyright": "© {year} Giant Growth. All rights reserved."
+  },
+  "home": {
+    "kicker": "GCSE & IGCSE practice",
+    "titleA": "Find your paper,",
+    "titleB": "then take up your pen.",
+    "intro": "Choose a subject, then the paper and section you are practising. Write your answer, have it marked against the board's mark scheme, and see it rewritten to full marks.",
+    "start": "Start practising",
+    "soon": "Coming soon",
+    "subjectsLabel": "Subjects"
+  },
+  "papers": {
+    "cambridge0990p2b": {
+      "board": "Cambridge IGCSE · First Language English (0990)",
+      "paper": "Paper 2 · Directed Writing and Composition",
+      "section": "Section B · Composition",
+      "summary": "Write a description or a story. Marked on content & structure and style & accuracy.",
+      "marks": "40 marks"
+    }
   }
 }

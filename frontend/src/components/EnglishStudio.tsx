@@ -16,11 +16,11 @@ const FALLBACK_BOARDS: BoardInfo[] = [
 type View = "write" | "results" | "ideal";
 
 /** Single-page flow. Everything lives in memory only: nothing is saved to the browser or server. */
-export function EnglishStudio() {
+export function EnglishStudio({ boardId }: { boardId: string }) {
   const key = useKey();
   const [boards, setBoards] = useState<BoardInfo[]>(FALLBACK_BOARDS);
   const [draft, setDraft] = useState<Draft>({
-    board: FALLBACK_BOARDS[0].id, marks: appConfig.defaultTariff, target: appConfig.defaultTimerTarget, question: "", answer: "",
+    board: boardId, marks: appConfig.defaultTariff, target: appConfig.defaultTimerTarget, question: "", answer: "",
   });
   const [seconds, setSeconds] = useState(0);
   const [running, setRunning] = useState(false);
@@ -32,8 +32,14 @@ export function EnglishStudio() {
   const submitted = useRef<Submission | null>(null);
 
   useEffect(() => {
-    api.boards().then((b) => { if (b.length) { setBoards(b); setDraft((d) => ({ ...d, board: b[0].id, marks: b[0].tariffs.at(-1) ?? d.marks })); } }).catch(() => {});
-  }, []);
+    api.boards().then((b) => {
+      if (!b.length) return;
+      // The page's URL picks the board; fall back to the first one the backend offers.
+      const chosen = b.find((x) => x.id === boardId) ?? b[0];
+      setBoards(b);
+      setDraft((d) => ({ ...d, board: chosen.id, marks: chosen.tariffs.at(-1) ?? d.marks }));
+    }).catch(() => {});
+  }, [boardId]);
   useEffect(() => {
     if (!running) return;
     const id = setInterval(() => setSeconds((s) => s + 1), 1000);

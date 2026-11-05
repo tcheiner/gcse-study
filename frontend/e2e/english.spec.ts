@@ -1,10 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { ANSWER, fillAnswer, json, mockBackend, QUESTION } from "./fixtures";
 
+const PAPER = "/english/cambridge-0990/paper-2/section-b";
+
 test("happy path: add key, get marked, see full-marks version", async ({ page }) => {
   const seen = await mockBackend(page);
   await page.goto("/");
-  await expect(page).toHaveURL(/\/english$/);
+  await page.getByRole("link", { name: /start practising/i }).click();
+  await expect(page).toHaveURL(/\/english\/cambridge-0990\/paper-2\/section-b$/);
   await expect(page.getByText("No key added")).toBeVisible();
 
   await fillAnswer(page);
@@ -58,7 +61,7 @@ test("a rejected key shows the reason and nothing is marked", async ({ page }) =
   const seen = await mockBackend(page, {
     addKey: (r) => json(r, 401, { code: "invalid_api_key", message: "nope" }),
   });
-  await page.goto("/english");
+  await page.goto(PAPER);
   await page.getByRole("button", { name: "Add key" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Paste your key").fill("sk-ant-wrong");
@@ -69,7 +72,7 @@ test("a rejected key shows the reason and nothing is marked", async ({ page }) =
 
 test("validation errors from the marker are shown on the page", async ({ page }) => {
   await mockBackend(page, { keyActive: true, grade: (r) => json(r, 422, { code: "answer_too_short", message: "x" }) });
-  await page.goto("/english");
+  await page.goto(PAPER);
   await fillAnswer(page);
   await page.getByRole("button", { name: /submit for marking/i }).click();
   await expect(page.locator("p[role=alert]")).toHaveText(/too short to mark/);
@@ -77,7 +80,7 @@ test("validation errors from the marker are shown on the page", async ({ page })
 
 test("a job that fails shows Claude's reason", async ({ page }) => {
   await mockBackend(page, { keyActive: true, gradeJobError: "refusal" });
-  await page.goto("/english");
+  await page.goto(PAPER);
   await fillAnswer(page);
   await page.getByRole("button", { name: /submit for marking/i }).click();
   await expect(page.getByRole("button", { name: /marking…/i })).toBeVisible();
@@ -86,7 +89,7 @@ test("a job that fails shows Claude's reason", async ({ page }) => {
 
 test("an expired key reopens the key dialog with an explanation", async ({ page }) => {
   await mockBackend(page, { keyActive: true, grade: (r) => json(r, 401, { code: "key_expired", message: "x" }) });
-  await page.goto("/english");
+  await page.goto(PAPER);
   await expect(page.getByText(/Key active/)).toBeVisible();
   await fillAnswer(page);
   await page.getByRole("button", { name: /submit for marking/i }).click();
@@ -96,7 +99,7 @@ test("an expired key reopens the key dialog with an explanation", async ({ page 
 
 test("forget my key clears it", async ({ page }) => {
   const seen = await mockBackend(page, { keyActive: true });
-  await page.goto("/english");
+  await page.goto(PAPER);
   await page.getByRole("button", { name: /forget my key now/i }).click();
   await expect(page.getByText("No key added")).toBeVisible();
   expect(seen.some((r) => r.method === "DELETE" && r.path === "/session/key")).toBe(true);
@@ -104,7 +107,7 @@ test("forget my key clears it", async ({ page }) => {
 
 test("backend down shows a friendly network error", async ({ page }) => {
   await mockBackend(page, { down: true });
-  await page.goto("/english");
+  await page.goto(PAPER);
   await page.getByRole("button", { name: "Add key" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Paste your key").fill("sk-ant-test");
@@ -114,7 +117,7 @@ test("backend down shows a friendly network error", async ({ page }) => {
 
 test("stopwatch runs and resets", async ({ page }) => {
   await mockBackend(page);
-  await page.goto("/english");
+  await page.goto(PAPER);
   await page.getByRole("button", { name: "Start" }).click();
   await expect(page.getByRole("img", { name: /Stopwatch: 00:0[2-9]/ })).toBeVisible({ timeout: 5000 });
   await page.getByRole("button", { name: "Pause" }).click();
@@ -124,7 +127,7 @@ test("stopwatch runs and resets", async ({ page }) => {
 
 test("print buttons open the print dialog and each page prints a one-page A4 sheet", async ({ page }) => {
   await mockBackend(page, { keyActive: true });
-  await page.goto("/english");
+  await page.goto(PAPER);
   await page.evaluate(() => { (window as unknown as { printed: number }).printed = 0; window.print = () => { (window as unknown as { printed: number }).printed++; }; });
   await fillAnswer(page);
 
@@ -155,7 +158,7 @@ test("print buttons open the print dialog and each page prints a one-page A4 she
 
 test("a long essay is scaled to fit one printed page", async ({ page }) => {
   await mockBackend(page, { keyActive: true });
-  await page.goto("/english");
+  await page.goto(PAPER);
   const long = Array.from({ length: 14 }, () => "The rain kept falling on the empty platform while the old clock refused to move. ".repeat(5)).join("\n\n");
   await page.getByRole("textbox", { name: "Your answer", exact: true }).fill(long);
   await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
@@ -168,7 +171,7 @@ test("a long essay is scaled to fit one printed page", async ({ page }) => {
 
 test("copyright footer is on the page and on printed sheets", async ({ page }) => {
   await mockBackend(page);
-  await page.goto("/english");
+  await page.goto(PAPER);
   await expect(page.getByRole("contentinfo")).toHaveText("© 2026 Giant Growth. All rights reserved.");
   await page.emulateMedia({ media: "print" });
   await expect(page.getByRole("contentinfo")).toBeHidden();
@@ -177,7 +180,7 @@ test("copyright footer is on the page and on printed sheets", async ({ page }) =
 
 test("Print sits in the same place, with the same label, on every page", async ({ page }) => {
   await mockBackend(page, { keyActive: true });
-  await page.goto("/english");
+  await page.goto(PAPER);
   const print = page.getByRole("button", { name: "Print", exact: true });
   const box = async () => { await page.evaluate(() => window.scrollTo(0, 0)); const b = (await print.boundingBox())!; return [Math.round(b.x), Math.round(b.y), Math.round(b.width)]; };
   const onWrite = await box();
@@ -188,4 +191,31 @@ test("Print sits in the same place, with the same label, on every page", async (
   await page.getByRole("button", { name: /show full-marks version/i }).click();
   await expect(page.locator(".hl-change").first()).toBeVisible({ timeout: 15_000 });
   expect(await box()).toEqual(onWrite);
+});
+
+test("old /english links redirect to the paper URL, and unknown papers are not found", async ({ page }) => {
+  await mockBackend(page);
+  await page.goto("/english");
+  await expect(page).toHaveURL(new RegExp(`${PAPER}$`));
+  await expect(page.getByText("Composition · 40 marks")).toBeVisible();
+  // Streamed (Partial Prefetching), so the status is 200, but the visitor sees the not-found page.
+  await page.goto("/english/cambridge-0990/paper-9/section-z");
+  await expect(page.getByText(/could not be found/i)).toBeVisible();
+});
+
+test("landing page finds the practice: subject, board, paper and section", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Find your paper");
+  const english = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: "English" }) });
+  await expect(english.getByText("Cambridge IGCSE · First Language English (0990)")).toBeVisible();
+  await expect(english.getByText("Paper 2 · Directed Writing and Composition")).toBeVisible();
+  await expect(english.getByText("Section B · Composition")).toBeVisible();
+  await expect(english.getByRole("link", { name: /start practising/i })).toHaveAttribute("href", PAPER);
+  for (const subject of ["Maths", "Science", "History"]) {
+    const card = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: subject }) });
+    await expect(card.getByText("Coming soon")).toBeVisible();
+    await expect(card.getByRole("link")).toHaveCount(0);
+  }
+  await expect(page.getByText("No key added")).toHaveCount(0); // no key control on the landing page
+  await expect(page.getByRole("contentinfo")).toContainText("Giant Growth");
 });

@@ -27,7 +27,9 @@ backends/
     src/english_grader/                main.py (routes), grader.py, mark_schemes.py, schemas.py
     tests/                             pytest; Claude client faked via app.state.llm_client
 frontend/
-  src/app/english/                     layout (theme + KeyProvider + Header) and page (EnglishStudio)
+  src/app/page.tsx                     landing page: subjects -> board -> paper -> section (from config/papers.ts)
+  src/app/english/                     layout (theme + KeyProvider + Header);
+                                       [board]/[paper]/[section]/page.tsx (EnglishStudio, params in Suspense)
   src/components/                      EnglishStudio (flow), WriteView, ResultsView, ModelAnswerView,
                                        KeyContext/KeyControl (key dialog + countdown), Stopwatch, Header
   src/config/app.ts, subjects.ts       app settings; per-subject ink colours (CSS variables)
@@ -87,6 +89,9 @@ logs/                        DDMMYYYY_HH-MM-SS-MS.log, new per start, rotates at
   Highlights print as underlines (solid = strength, wavy = improve, double = change), not backgrounds.
 - Footer: `Footer` (screen) and every print sheet show "© {year} Giant Growth"; year is `appConfig.copyrightYear`.
   The "Powered by Netlify" badge is injected by Netlify on the free plan and cannot be hidden there.
+- URLs: /english/<board>/<paper>/<section>, e.g. /english/cambridge-0990/paper-2/section-b, listed in
+  `src/config/papers.ts` (labels in locales `papers.*`). `/english` redirects there (next.config.ts redirects).
+  Unknown papers render the not-found page (status 200: streamed under Partial Prefetching).
 - Never read the clock during render (Cache Components prerender error): use `useNow()` from lib/clock.
 
 ## Run
