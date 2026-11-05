@@ -5,7 +5,7 @@ import { appConfig } from "@/config/app";
 import type { BoardInfo } from "@/lib/api";
 import { t } from "@/lib/i18n";
 import { wordCount } from "@/lib/text";
-import { PrintButton } from "./PrintButton";
+import { PageBar } from "./PrintButton";
 import { DraftPrint } from "./PrintSheets";
 import { Stopwatch } from "./Stopwatch";
 
@@ -42,6 +42,7 @@ export function WriteView(p: Props) {
   return (
     <main id="main" className="shell page">
       <DraftPrint question={draft.question} answer={draft.answer} words={words} marks={draft.marks} />
+      <PageBar />
       <div className="between screen-only">
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <span className="kicker">{t("write.kicker")}</span>
@@ -128,13 +129,10 @@ export function WriteView(p: Props) {
           </p>
           <p className="muted" style={{ margin: 0, fontSize: 14 }}>{t("write.keptLocal")}</p>
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 24 }}>
-          <PrintButton labelKey="print.draft" />
         <button type="submit" form="submission" className="btn" disabled={p.busy}>
           {p.busy ? t("write.submitting") : t("write.submit")}
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M13 6l6 6-6 6" /></svg>
         </button>
-        </div>
       </div>
     </main>
   );

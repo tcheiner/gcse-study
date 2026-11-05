@@ -120,6 +120,7 @@ button { font-family: inherit; }
 .btn-pen:hover { color: var(--pen-deep); }
 .btn-light { color: var(--text); background: var(--paper); box-shadow: 0 4px 0 #2B1A0C; }
 .btn-light:hover { color: var(--text); }
+.page-bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 48px; }
 /* Raised paper button: bordered, lifted on a solid ink edge, presses down when clicked. */
 .btn-raised {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px;

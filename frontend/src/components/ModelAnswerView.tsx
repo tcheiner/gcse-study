@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { GradeResult, ModelAnswer } from "@/lib/api";
 import { t } from "@/lib/i18n";
 import { segmentByQuotes } from "@/lib/text";
-import { PrintButton } from "./PrintButton";
+import { PageBar } from "./PrintButton";
 import { IdealPrint } from "./PrintSheets";
 import { splitParagraphs } from "./ResultsView";
 
@@ -27,10 +27,12 @@ export function ModelAnswerView({ ideal, original, question, grade, onBack }: Pr
     <main id="main" className="shell page" style={{ gap: 32 }}>
       <IdealPrint ideal={ideal} original={original} grade={grade} question={question} view={view} />
       <div className="screen-only" style={{ display: "contents" }}>
-      <button type="button" className="linkish" onClick={onBack} style={{ alignSelf: "flex-start" }}>
-        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5" /><path d="M11 6l-6 6 6 6" /></svg>
-        {t("ideal.back")}
-      </button>
+      <PageBar back={
+        <button type="button" className="linkish" onClick={onBack}>
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5" /><path d="M11 6l-6 6 6 6" /></svg>
+          {t("ideal.back")}
+        </button>
+      } />
 
       <div className="between">
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -45,7 +47,6 @@ export function ModelAnswerView({ ideal, original, question, grade, onBack }: Pr
             ))}
           </div>
           <button type="button" className="btn-raised" onClick={copy} aria-live="polite">{copied ? t("ideal.copied") : t("ideal.copy")}</button>
-          <PrintButton labelKey="print.ideal" />
         </div>
       </div>
 

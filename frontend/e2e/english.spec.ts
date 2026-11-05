@@ -128,7 +128,7 @@ test("print buttons open the print dialog and each page prints a one-page A4 she
   await page.evaluate(() => { (window as unknown as { printed: number }).printed = 0; window.print = () => { (window as unknown as { printed: number }).printed++; }; });
   await fillAnswer(page);
 
-  await page.getByRole("button", { name: "Print to edit" }).click();
+  await page.getByRole("button", { name: "Print", exact: true }).click();
   await page.emulateMedia({ media: "print" });
   await expect(page.locator(".ps-draft")).toBeVisible();
   await expect(page.locator(".ps-draft h1")).toHaveText(QUESTION);
@@ -138,7 +138,7 @@ test("print buttons open the print dialog and each page prints a one-page A4 she
   await expect(page.locator(".ps-draft")).toBeHidden();
 
   await page.getByRole("button", { name: /submit for marking/i }).click();
-  await page.getByRole("button", { name: "Print marked essay" }).click();
+  await page.getByRole("button", { name: "Print", exact: true }).click();
   await page.emulateMedia({ media: "print" });
   const sheet = page.locator(".ps-marked");
   await expect(sheet).toBeVisible();
@@ -149,7 +149,7 @@ test("print buttons open the print dialog and each page prints a one-page A4 she
   await page.emulateMedia({ media: "screen" });
 
   await page.getByRole("button", { name: /show full-marks version/i }).click();
-  await page.getByRole("button", { name: "Print full-marks version" }).click();
+  await page.getByRole("button", { name: "Print", exact: true }).click();
   expect(await page.evaluate(() => (window as unknown as { printed: number }).printed)).toBe(3);
 });
 
@@ -173,4 +173,19 @@ test("copyright footer is on the page and on printed sheets", async ({ page }) =
   await page.emulateMedia({ media: "print" });
   await expect(page.getByRole("contentinfo")).toBeHidden();
   await expect(page.locator(".ps-draft .ps-foot")).toHaveText("© 2026 Giant Growth. All rights reserved.");
+});
+
+test("Print sits in the same place, with the same label, on every page", async ({ page }) => {
+  await mockBackend(page, { keyActive: true });
+  await page.goto("/english");
+  const print = page.getByRole("button", { name: "Print", exact: true });
+  const box = async () => { await page.evaluate(() => window.scrollTo(0, 0)); const b = (await print.boundingBox())!; return [Math.round(b.x), Math.round(b.y), Math.round(b.width)]; };
+  const onWrite = await box();
+  await fillAnswer(page);
+  await page.getByRole("button", { name: /submit for marking/i }).click();
+  await expect(page.getByRole("heading", { name: /22 \/ 40/ })).toBeVisible({ timeout: 15_000 });
+  expect(await box()).toEqual(onWrite);
+  await page.getByRole("button", { name: /show full-marks version/i }).click();
+  await expect(page.locator(".hl-change").first()).toBeVisible({ timeout: 15_000 });
+  expect(await box()).toEqual(onWrite);
 });

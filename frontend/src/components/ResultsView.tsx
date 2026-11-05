@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { GradeResult, GridResult } from "@/lib/api";
 import { t } from "@/lib/i18n";
 import { formatClock, segmentByQuotes, toRoman } from "@/lib/text";
-import { PrintButton } from "./PrintButton";
+import { PageBar } from "./PrintButton";
 import { MarkedPrint } from "./PrintSheets";
 
 interface Props {
@@ -70,10 +70,7 @@ export function ResultsView({ result, question, answer, onBack, onIdeal, idealBu
     <main id="main" className="shell page" style={{ gap: 40 }}>
       <MarkedPrint result={result} question={question} answer={answer} />
       <div className="screen-only" style={{ display: "contents" }}>
-      <div className="between" style={{ alignItems: "center" }}>
-        <button type="button" className="linkish" onClick={onBack}><BackIcon />{t("results.back")}</button>
-        <PrintButton labelKey="print.marked" />
-      </div>
+      <PageBar back={<button type="button" className="linkish" onClick={onBack}><BackIcon />{t("results.back")}</button>} />
 
       <section aria-labelledby="mark-h" className="sheet" style={{ padding: "clamp(28px, 5vw, 48px)", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 48 }}>
         <div className="stamp">
