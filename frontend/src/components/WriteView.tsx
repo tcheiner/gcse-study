@@ -5,6 +5,7 @@ import { appConfig } from "@/config/app";
 import type { BoardInfo } from "@/lib/api";
 import { t } from "@/lib/i18n";
 import { wordCount } from "@/lib/text";
+import { PrintButton } from "./PrintButton";
 import { Stopwatch } from "./Stopwatch";
 
 export interface Draft { board: string; marks: number; target: number; question: string; answer: string }
@@ -39,7 +40,8 @@ export function WriteView(p: Props) {
 
   return (
     <main id="main" className="shell page">
-      <div className="between">
+      <PrintDraft question={draft.question} answer={draft.answer} words={words} marks={draft.marks} />
+      <div className="between screen-only">
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <span className="kicker">{t("write.kicker")}</span>
           <h1 className="display">{t("write.titleA")}<br /><em>{t("write.titleB")}</em></h1>
@@ -50,7 +52,7 @@ export function WriteView(p: Props) {
         </ol>
       </div>
 
-      <form className="row" onSubmit={(e) => { e.preventDefault(); p.onSubmit(); }} id="submission">
+      <form className="row screen-only" onSubmit={(e) => { e.preventDefault(); p.onSubmit(); }} id="submission">
         <section aria-labelledby="card-h" className="index-card" style={{ flex: "1 1 340px", minWidth: 0 }}>
           <div className="between" style={{ alignItems: "baseline" }}>
             <h2 id="card-h" className="h2i" style={{ height: 34 }}>{t("write.cardTitle")}</h2>
@@ -118,18 +120,32 @@ export function WriteView(p: Props) {
 
       {p.error && <p role="alert" className="alert" style={{ margin: 0 }}>{p.error}</p>}
 
-      <div className="between" style={{ alignItems: "center" }}>
+      <div className="between screen-only" style={{ alignItems: "center" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <p className="fell muted" style={{ margin: 0, fontStyle: "italic", fontSize: 19 }}>
             {t("write.footnote", { board: board?.name ?? "", marks: draft.marks })}
           </p>
           <p className="muted" style={{ margin: 0, fontSize: 14 }}>{t("write.keptLocal")}</p>
         </div>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 24 }}>
+          <PrintButton labelKey="print.draft" />
         <button type="submit" form="submission" className="btn" disabled={p.busy}>
           {p.busy ? t("write.submitting") : t("write.submit")}
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M13 6l6 6-6 6" /></svg>
         </button>
+        </div>
       </div>
     </main>
+  );
+}
+
+/** Print-only copy of the draft: the textarea itself prints clipped, so render the text as paragraphs. */
+function PrintDraft({ question, answer, words, marks }: { question: string; answer: string; words: number; marks: number }) {
+  return (
+    <article className="print-only print-draft">
+      <h1 className="q">{question}</h1>
+      <p className="meta">{t("print.draftMeta", { words, marks })}</p>
+      {answer.split(/\n\s*\n/).filter((x) => x.trim()).map((para, i) => <p key={i}>{para}</p>)}
+    </article>
   );
 }

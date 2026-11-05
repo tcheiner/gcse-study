@@ -8,7 +8,7 @@ test("happy path: add key, get marked, see full-marks version", async ({ page })
   await expect(page.getByText("No key added")).toBeVisible();
 
   await fillAnswer(page);
-  await expect(page.getByText(`${ANSWER.trim().split(/\s+/).length} words`)).toBeAttached();
+  await expect(page.getByText(`${ANSWER.trim().split(/\s+/).length} words`, { exact: true })).toBeAttached();
   await expect(page.getByText("Composition · 40 marks")).toBeVisible();
   await page.getByRole("button", { name: /submit for marking/i }).click();
 
@@ -119,4 +119,30 @@ test("stopwatch runs and resets", async ({ page }) => {
   await page.getByRole("button", { name: "Pause" }).click();
   await page.getByRole("button", { name: "Reset timer" }).click();
   await expect(page.getByRole("img", { name: "Stopwatch: 00:00 elapsed" })).toBeVisible();
+});
+
+test("print buttons open the print dialog and the print layout hides the site chrome", async ({ page }) => {
+  await mockBackend(page, { keyActive: true });
+  await page.goto("/english");
+  await page.evaluate(() => { (window as unknown as { printed: number }).printed = 0; window.print = () => { (window as unknown as { printed: number }).printed++; }; });
+  await fillAnswer(page);
+
+  await page.getByRole("button", { name: "Print to edit" }).click();
+  await page.emulateMedia({ media: "print" });
+  await expect(page.locator(".print-draft")).toBeVisible();
+  await expect(page.locator(".print-draft h1")).toHaveText(QUESTION);
+  await expect(page.locator("header.header")).toBeHidden();
+  await expect(page.getByRole("button", { name: /submit for marking/i })).toBeHidden();
+  await page.emulateMedia({ media: "screen" });
+
+  await page.getByRole("button", { name: /submit for marking/i }).click();
+  await page.getByRole("button", { name: "Print marked essay" }).click();
+  await page.emulateMedia({ media: "print" });
+  await expect(page.getByText("Content & Structure: 9 / 16 · Level 4")).toBeVisible();
+  await expect(page.getByRole("button", { name: /show full-marks version/i })).toBeHidden();
+  await page.emulateMedia({ media: "screen" });
+
+  await page.getByRole("button", { name: /show full-marks version/i }).click();
+  await page.getByRole("button", { name: "Print", exact: true }).click();
+  expect(await page.evaluate(() => (window as unknown as { printed: number }).printed)).toBe(3);
 });

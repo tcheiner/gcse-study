@@ -79,6 +79,9 @@ logs/                        DDMMYYYY_HH-MM-SS-MS.log, new per start, rotates at
   production, http://127.0.0.1:8000 locally). Keeps the HttpOnly key cookie first-party.
 - Grade output includes `annotations` (verbatim quotes + strength/improve + note) for margin marking;
   model answer `changes[].excerpt` for highlighting. Non-verbatim quotes are dropped server-side.
+- Printing: `PrintButton` calls window.print(); the `@media print` block in globals.css hides chrome
+  (`.no-print`, header), shows `.print-only` (the write page's double-spaced draft for handwritten edits),
+  stacks rows and resets flex-basis so widths don't become heights. Three printouts: draft, marked, full marks.
 - Never read the clock during render (Cache Components prerender error): use `useNow()` from lib/clock.
 
 ## Run

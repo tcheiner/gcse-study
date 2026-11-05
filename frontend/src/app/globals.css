@@ -171,3 +171,30 @@ dialog.key-dialog::backdrop { background: rgba(59, 47, 37, .45); }
 .key-status .lamp { width: 10px; height: 10px; border-radius: 50%; background: var(--faint); }
 .key-status .lamp.on { background: var(--ink); box-shadow: 0 0 0 3px var(--ink-soft); }
 .masked { -webkit-text-security: disc; }
+
+/* ---------- print ---------- */
+.print-only { display: none; }
+@media print {
+  @page { size: A4; margin: 16mm 16mm 18mm; }
+  :root { --lift: none; }
+  html, body { background: #fff !important; color: #000; }
+  .header, .skip, .no-print, nextjs-portal { display: none !important; }
+  .print-only { display: block; }
+  .screen-only { display: none !important; }
+  .shell, .page { max-width: none; padding: 0; gap: 18px !important; }
+  .sheet, .index-card { box-shadow: none !important; background: #fff !important; }
+  .row { flex-direction: column; }
+  /* Keep highlight colours and ink: browsers drop backgrounds unless told otherwise. */
+  .hl, .alert, .stamp { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .ruled { background-image: none; }
+  /* Stacked on paper: a flex-basis meant as a width would otherwise become a height. */
+  .row > *, .sheet > * { flex-basis: auto !important; }
+  li, .grid-card, .alert { break-inside: avoid; }
+  h1, h2, h3 { break-after: avoid; }
+}
+
+/* Printed draft for handwritten edits: double-spaced, wide right margin. */
+.print-draft { font-family: var(--font-type); color: #000; }
+.print-draft .q { font-family: var(--font-fell); font-size: 18pt; margin: 0 0 4mm; }
+.print-draft .meta { font-size: 9pt; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 8mm; border-bottom: 1px solid #999; padding-bottom: 3mm; }
+.print-draft p { font-size: 12pt; line-height: 2.4; margin: 0 0 5mm; padding-right: 45mm; white-space: pre-wrap; }

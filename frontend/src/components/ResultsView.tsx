@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { GradeResult, GridResult } from "@/lib/api";
 import { t } from "@/lib/i18n";
 import { formatClock, segmentByQuotes, toRoman } from "@/lib/text";
+import { PrintButton } from "./PrintButton";
 
 interface Props {
   result: GradeResult;
@@ -31,14 +32,14 @@ function GridCard({ grid }: { grid: GridResult }) {
   const headingId = `grid-${grid.id}`;
 
   return (
-    <section aria-labelledby={headingId} className="sheet" style={{ flex: "1 1 420px", minWidth: 0, padding: "26px 28px", display: "flex", flexDirection: "column", gap: 14, boxShadow: "0 1px 0 var(--shadow-line)" }}>
+    <section aria-labelledby={headingId} className="sheet grid-card" style={{ flex: "1 1 420px", minWidth: 0, padding: "26px 28px", display: "flex", flexDirection: "column", gap: 14, boxShadow: "0 1px 0 var(--shadow-line)" }}>
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
         <h3 id={headingId} style={{ margin: 0, fontSize: 16, letterSpacing: ".08em", textTransform: "uppercase" }}>{grid.label}</h3>
         <span className="grid-score">{grid.score}<small> / {grid.max}</small></span>
       </div>
       <p className="muted" style={{ margin: 0, fontSize: 15 }}>{grid.student_summary}</p>
       <p style={{ margin: 0 }}><strong>{grid.level}.</strong> {grid.justification}</p>
-      <div className="track compact" role="group" aria-label={t("results.levelsOf", { grid: grid.label })}>
+      <div className="track compact no-print" role="group" aria-label={t("results.levelsOf", { grid: grid.label })}>
         {levels.map((l) => (
           <button key={l.name} type="button" aria-pressed={sel.name === l.name} aria-label={t("results.levelMarks", { level: l.name, range: range(l) })}
                   onClick={() => setSelected(l.name)}>
@@ -47,7 +48,7 @@ function GridCard({ grid }: { grid: GridResult }) {
           </button>
         ))}
       </div>
-      <div style={{ background: "var(--paper-2)", border: "1px dashed var(--rule-strong)", borderRadius: 3, padding: "14px 18px", display: "flex", flexDirection: "column", gap: 4 }} aria-live="polite">
+      <div className="no-print" style={{ background: "var(--paper-2)", border: "1px dashed var(--rule-strong)", borderRadius: 3, padding: "14px 18px", display: "flex", flexDirection: "column", gap: 4 }} aria-live="polite">
         <strong className="fell" style={{ fontWeight: 400, fontSize: 20 }}>
           {t("results.levelMarks", { level: sel.name, range: range(sel) })}{sel.name === grid.level ? ` · ${t("results.you")}` : ""}
         </strong>
@@ -65,7 +66,10 @@ export function ResultsView({ result, answer, onBack, onIdeal, idealBusy, error 
 
   return (
     <main id="main" className="shell page" style={{ gap: 40 }}>
-      <button type="button" className="linkish" onClick={onBack} style={{ alignSelf: "flex-start" }}><BackIcon />{t("results.back")}</button>
+      <div className="between no-print" style={{ alignItems: "center" }}>
+        <button type="button" className="linkish" onClick={onBack}><BackIcon />{t("results.back")}</button>
+        <PrintButton labelKey="print.marked" />
+      </div>
 
       <section aria-labelledby="mark-h" className="sheet" style={{ padding: "clamp(28px, 5vw, 48px)", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 48 }}>
         <div className="stamp">
@@ -101,14 +105,14 @@ export function ResultsView({ result, answer, onBack, onIdeal, idealBusy, error 
 
       <section aria-labelledby="grids-h" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         <h2 id="grids-h" className="h2">{t("results.trackTitle")}</h2>
-        <p style={{ margin: 0, maxWidth: 760, color: "var(--text-2)" }}>{t("results.trackIntro")}</p>
+        <p className="no-print" style={{ margin: 0, maxWidth: 760, color: "var(--text-2)" }}>{t("results.trackIntro")}</p>
         <div className="row">
           {result.grids.map((g) => <GridCard key={g.id} grid={g} />)}
         </div>
         {result.status === "draft" && <p className="muted" style={{ margin: 0, fontSize: 14 }}>{t("results.draftScheme")}</p>}
       </section>
 
-      <section aria-labelledby="marked-h" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      <section aria-labelledby="marked-h" className="marked-essay" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         <div className="between" style={{ alignItems: "baseline" }}>
           <h2 id="marked-h" className="h2">{t("results.markedTitle")}</h2>
           <div style={{ display: "flex", gap: 18, fontSize: 14 }}>
@@ -157,7 +161,7 @@ export function ResultsView({ result, answer, onBack, onIdeal, idealBusy, error 
 
       {error && <p role="alert" className="alert" style={{ margin: 0 }}>{error}</p>}
 
-      <section aria-labelledby="ideal-h" className="cta-band">
+      <section aria-labelledby="ideal-h" className="cta-band no-print">
         <svg aria-hidden="true" width="96" height="96" viewBox="0 0 100 100" style={{ flex: "0 0 auto" }}>
           <path d="M50 4 C62 8 70 2 80 12 C88 20 86 30 94 40 C98 52 92 60 94 70 C90 82 80 84 72 92 C62 98 54 92 44 96 C32 96 26 88 16 82 C8 74 10 64 5 54 C2 42 10 34 10 24 C16 12 28 12 38 6 C42 4 46 4 50 4Z" fill="var(--pen)" />
           <circle cx="50" cy="50" r="30" fill="none" stroke="#C9715A" strokeWidth="2" />
